@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Pravaha"
+version = "1.0.0"
+description = "FastAPI protocol library for LLM/agent applications with streaming support"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Nikhil Vijayakumar", email = "nikhil@example.com"}
+]
+keywords = ["fastapi", "llm", "agent", "streaming", "sse", "protocol", "bot"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "fastapi==0.121.3",
+    "sse-starlette==3.0.3",
+]
+
+[project.optional-dependencies]
+config = ["PyYAML==6.0.2"]
+dev = [
+    "uvicorn==0.34.0",
+    "pytest==8.3.3",
+    "pytest-asyncio==0.24.0",
+    "httpx==0.27.2",
+    "black==24.10.0",
+    "ruff==0.7.4",
+    "mypy==1.13.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/NikhilVijayakumar/Pravaha"
+Documentation = "https://github.com/NikhilVijayakumar/Pravaha#readme"
+Repository = "https://github.com/NikhilVijayakumar/Pravaha"
+Issues = "https://github.com/NikhilVijayakumar/Pravaha/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

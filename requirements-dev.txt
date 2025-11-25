@@ -1,0 +1,27 @@
+# Development dependencies for Pravaha
+# Install with: pip install -r requirements-dev.txt
+
+# Include production dependencies
+-r requirements.txt
+
+# Optional config support
+PyYAML==6.0.2
+
+# ASGI server for running examples
+uvicorn==0.34.0
+
+# Testing framework
+pytest==8.3.3
+pytest-asyncio==0.24.0
+
+# HTTP client for testing
+httpx==0.27.2
+
+# Code formatting
+black==24.10.0
+
+# Linting
+ruff==0.7.4
+
+# Type checking
+mypy==1.13.0
