@@ -6,9 +6,9 @@ from fastapi import APIRouter, HTTPException, FastAPI
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from nikhil.pravaha.domain.api.protocol.bot_manager_protocol import BotManagerProtocol
-from nikhil.pravaha.domain.api.protocol.task_config_protocol import TaskConfigProtocol
-from nikhil.pravaha.domain.api.streaming.sync_to_async import stream_from_sync_iterable
+from pravaha.domain.api.protocol.bot_manager_protocol import BotManagerProtocol
+from pravaha.domain.api.protocol.task_config_protocol import TaskConfigProtocol
+from pravaha.domain.api.streaming.sync_to_async import stream_from_sync_iterable
 
 
 def _sse_format(data: str) -> str:
