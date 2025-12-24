@@ -371,6 +371,23 @@ See [VIRTUAL_ENV_USAGE.md](file:///home/dell/PycharmProjects/Pravaha/docs/VIRTUA
 - **[Architecture.md](file:///home/dell/PycharmProjects/Pravaha/docs/Architecture.md)** - Coding standards and architectural principles
 - **[DEPENDENCIES.md](file:///home/dell/PycharmProjects/Pravaha/docs/DEPENDENCIES.md)** - Dependency management and migration roadmap
 
+### Testing
+
+Run unit tests and check coverage using the configured tools:
+
+```bash
+# Activate virtual environment first
+source venv/bin/activate  # Linux/Mac
+# or
+.\venv\Scripts\Activate.ps1  # Windows
+
+# Run tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=src/nikhil/pravaha --cov-report=term-missing
+```
+
 ---
 
 ## Use Cases
