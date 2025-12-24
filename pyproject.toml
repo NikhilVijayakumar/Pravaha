@@ -7,25 +7,13 @@ name = "Pravaha"
 version = "1.0.0"
 description = "FastAPI protocol library for LLM/agent applications with streaming support"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
-    {name = "Nikhil Vijayakumar", email = "nikhil@example.com"}
+    {name = "Nikhil Vijayakumar", email = "nikhil.vijaykumar@gmail.com"}
 ]
-keywords = ["fastapi", "llm", "agent", "streaming", "sse", "protocol", "bot"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Framework :: FastAPI",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-]
+
+
 
 dependencies = [
     "fastapi==0.121.3",
@@ -48,24 +36,24 @@ dev = [
 Homepage = "https://github.com/NikhilVijayakumar/Pravaha"
 Documentation = "https://github.com/NikhilVijayakumar/Pravaha#readme"
 Repository = "https://github.com/NikhilVijayakumar/Pravaha"
-Issues = "https://github.com/NikhilVijayakumar/Pravaha/issues"
+
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src/nikhil" }
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src/nikhil"]
 
 [tool.black]
 line-length = 100
-target-version = ['py39', 'py310', 'py311', 'py312']
+target-version = ['py312']
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py312"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
