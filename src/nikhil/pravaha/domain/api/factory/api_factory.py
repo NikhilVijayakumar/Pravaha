@@ -66,7 +66,7 @@ def create_bot_api(
                     async for chunk in stream:  # type: ignore
                         yield _sse_format(str(chunk))
                 # If sync iterable/generator:
-                elif hasattr(stream, "__iter__"):
+                elif hasattr(stream, "__iter__") and not isinstance(stream, (str, bytes)):
                     async for chunk in stream_from_sync_iterable(stream):  # type: ignore
                         yield _sse_format(str(chunk))
                 else:
