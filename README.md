@@ -85,76 +85,54 @@ See [`pyproject.toml`](file:///home/dell/PycharmProjects/Pravaha/pyproject.toml)
 
 ## Quick Start
 
-### 1. Define Your Task Enums
+### 1. Explore the Example Package
+We have provided a comprehensive example in `src/nikhil/pravaha_example`.
+It includes:
+- **MathBot**: A streaming math assistant.
+- **CalculatorTool**: A simple calculator utility.
+- **Server**: A FastAPI app connecting them.
 
+Run it with:
+```bash
+uvicorn pravaha_example.service.server:app --reload
+```
+
+### 2. Basic Implementation Steps
+
+**a. Define Enums**
 ```python
 from enum import Enum
-
-class UtilsType(Enum):
-    VALIDATE_INPUT = "validate_input"
-    PARSE_DATA = "parse_data"
-
-class ApplicationType(Enum):
+class UtilsType(str, Enum):
+    CALCULATOR = "calculator"
+class ApplicationType(str, Enum):
     CHAT = "chat"
-    SUMMARIZE = "summarize"
-
-class ExecutionTarget(Enum):
+class ExecutionTarget(str, Enum):
     LOCAL = "local"
-    CLOUD = "cloud"
 ```
 
-### 2. Implement the Bot Manager Protocol
-
+**b. Implement Bot Manager**
 ```python
-from nikhil.pravaha.domain.api.protocol.bot_manager_protocol import BotManagerProtocol
-from typing import Iterator
+from pravaha.domain.bot.protocol.bot_manager_protocol import BotManagerProtocol
 
 class MyBotManager:
-    """Implements BotManagerProtocol for your bot/agent logic"""
+    def run(self, utility_task, inputs=None):
+        return "Executed"
     
-    def run(self, utility_task: UtilsType) -> dict:
-        """Synchronous execution for utility tasks"""
-        if utility_task == UtilsType.VALIDATE_INPUT:
-            return {"status": "valid", "message": "Input validated"}
-        # Add your logic here
-        return {"result": "processed"}
-    
-    def stream_run(self, application_task: ApplicationType) -> Iterator[str]:
-        """Streaming execution for LLM/agent tasks"""
-        if application_task == ApplicationType.CHAT:
-            # Simulate streaming response
-            for chunk in ["Hello", " ", "from", " ", "LLM"]:
-                yield chunk
-        # Add your streaming logic here
+    async def stream_run(self, application_task, inputs=None):
+        yield "Hello from stream"
 ```
 
-### 3. Create Task Config
-
+**c. Create Server**
 ```python
-class MyTaskConfig:
-    """Implements TaskConfigProtocol"""
-    UtilsType = UtilsType
-    ApplicationType = ApplicationType
-    ExecutionTarget = ExecutionTarget
+from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
+from fastapi import FastAPI
+
+# ... setup config and manager ...
+bot_provider = BotAPIProvider(bot_manager, task_config)
+app = FastAPI()
+app.include_router(bot_provider.router)
 ```
 
-### 4. Create and Run the API
-
-```python
-from nikhil.pravaha.domain.api.factory.api_factory import create_fastapi_app
-import uvicorn
-
-# Create bot manager and config
-bot_manager = MyBotManager()
-task_config = MyTaskConfig()
-
-# Create FastAPI app
-app = create_fastapi_app(bot_manager, task_config, prefix="api")
-
-# Run the server
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-```
 
 ### 5. Use the API
 

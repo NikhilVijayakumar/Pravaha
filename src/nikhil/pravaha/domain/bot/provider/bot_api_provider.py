@@ -1,7 +1,7 @@
 import inspect
 from fastapi import APIRouter, HTTPException
-from pravaha.domain.api.factory.model.application_request import ApplicationRequest
-from pravaha.domain.api.factory.model.utility_request import UtilityRequest
+from pravaha.domain.bot.model.application_request import ApplicationRequest
+from pravaha.domain.bot.model.utility_request import UtilityRequest
 from pravaha.domain.bot.streaming.sync_to_async import stream_from_sync_iterable
 from sse_starlette.sse import EventSourceResponse
 

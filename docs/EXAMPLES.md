@@ -43,70 +43,39 @@ class ExecutionTarget(Enum):
 ```
 
 ### Step 2: Implement Bot Manager
-
-```python
-# bot_manager.py
-from typing import Any, Iterator
-from config import UtilsType, ApplicationType
-
-class SimpleBotManager:
-    """Simple bot manager implementation"""
     
-    def run(self, utility_task: UtilsType) -> Any:
-        """Handle synchronous utility tasks"""
-        if utility_task == UtilsType.VALIDATE:
-            return {"status": "valid", "message": "Input validated successfully"}
-        elif utility_task == UtilsType.PARSE:
-            return {"parsed_data": {"key": "value"}}
-        elif utility_task == UtilsType.TRANSFORM:
-            return {"transformed": True}
-        return {"error": "Unknown task"}
+    ```python
+    # bot_manager.py
+    from typing import Any, Iterator
+    from nikhil.pravaha.domain.bot.protocol.bot_manager_protocol import BotManagerProtocol
+    from config import UtilsType, ApplicationType
     
-    def stream_run(self, application_task: ApplicationType) -> Iterator[str]:
-        """Handle streaming tasks"""
-        if application_task == ApplicationType.CHAT:
-            # Simulate streaming chat response
-            response = "Hello! How can I assist you today?"
-            for word in response.split():
-                yield word + " "
-        elif application_task == ApplicationType.SUMMARIZE:
-            yield "Summary: "
-            yield "This is a concise summary "
-            yield "of the input text."
-```
-
-### Step 3: Create Task Config
-
-```python
-# task_config.py
-from config import UtilsType, ApplicationType, ExecutionTarget
-
-class TaskConfig:
-    """Task configuration"""
-    UtilsType = UtilsType
-    ApplicationType = ApplicationType
-    ExecutionTarget = ExecutionTarget
-```
-
-### Step 4: Create and Run API
-
-```python
-# main.py
-from nikhil.pravaha.domain.api.factory.api_factory import create_fastapi_app
-from bot_manager import SimpleBotManager
-from task_config import TaskConfig
-import uvicorn
-
-# Create instances
-bot_manager = SimpleBotManager()
-task_config = TaskConfig()
-
-# Create FastAPI app
-app = create_fastapi_app(bot_manager, task_config, prefix="api")
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-```
+    class SimpleBotManager:
+    # ... (rest same)
+    ```
+    
+    ### Step 4: Create and Run API
+    
+    ```python
+    # main.py
+    from nikhil.pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
+    from bot_manager import SimpleBotManager
+    from task_config import TaskConfig
+    from fastapi import FastAPI
+    import uvicorn
+    
+    # Create instances
+    bot_manager = SimpleBotManager()
+    task_config = TaskConfig()
+    
+    # Create FastAPI app
+    app = FastAPI()
+    bot_provider = BotAPIProvider(bot_manager, task_config)
+    app.include_router(bot_provider.router)
+    
+    if __name__ == "__main__":
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    ```
 
 ### Step 5: Test the API
 

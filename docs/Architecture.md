@@ -289,12 +289,14 @@ def _sse_format(data: str) -> str:
 
 ### 1. Protocol-Only Public Interface
 
-```python
-# Client never imports internal implementation
-from nikhil.pravaha.domain.api.protocol.bot_manager_protocol import BotManagerProtocol
-from nikhil.pravaha.domain.api.protocol.task_config_protocol import TaskConfigProtocol
-from nikhil.pravaha.domain.api.factory.api_factory import create_bot_api, create_fastapi_app
-```
+### 1. Protocol-Only Public Interface
+    
+    ```python
+    # Client never imports internal implementation
+    from pravaha.domain.bot.protocol.bot_manager_protocol import BotManagerProtocol
+    from pravaha.domain.bot.protocol.task_config_protocol import TaskConfigProtocol
+    from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
+    ```
 
 ### 2. Implementation is Client's Responsibility
 
