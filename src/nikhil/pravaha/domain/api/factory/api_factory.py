@@ -11,7 +11,7 @@ from pravaha.domain.api.streaming.sync_to_async import stream_from_sync_iterable
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from src.nikhil.pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
+from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
 
 
 def create_storage_api(storage_manager: LocalStorageManager) -> APIRouter:
