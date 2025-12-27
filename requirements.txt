@@ -1,3 +1,0 @@
-# Production dependencies (from pyproject.toml)
-fastapi==0.121.3
-sse-starlette==3.0.3
