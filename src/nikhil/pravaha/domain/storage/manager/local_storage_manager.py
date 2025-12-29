@@ -6,28 +6,29 @@ from fastapi import HTTPException
 
 
 class LocalStorageManager:
-    def __init__(self, config_file: str = "storage_config.json"):
-
+    def __init__(self):
         self.project_root = Path(os.getcwd())
         
-        # Store config in .Pravaha directory
-        self.config_dir = self.project_root / ".Pravaha"
-        self.config_dir.mkdir(exist_ok=True)
+        # Strict config path: .Pravaha/config/storage.json
+        self.config_dir = self.project_root / ".Pravaha" / "config"
+        self.config_file = self.config_dir / "storage.json"
         
-        self.config_file = self.config_dir / config_file
         self._ensure_defaults()
 
     def _ensure_defaults(self):
         """Sets up default paths relative to project root if no config exists."""
         if not self.config_file.exists():
+            # Ensure config directory exists
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+
             defaults = {
-                "output": str(self.project_root / "output"),
-                "intermediate": str(self.project_root / "intermediate"),
-                "knowledge": str(self.project_root / "knowledge")
+                "output": "output",
+                "intermediate": "intermediate",
+                "knowledge": "knowledge"
             }
 
             for path_str in defaults.values():
-                Path(path_str).mkdir(parents=True, exist_ok=True)
+                (self.project_root / path_str).mkdir(parents=True, exist_ok=True)
 
             self._save_config(defaults)
 
@@ -39,9 +40,9 @@ class LocalStorageManager:
         """Allows API to override defaults with absolute or other relative paths."""
 
         config = {
-            "output": str(Path(output).resolve()),
-            "intermediate": str(Path(intermediate).resolve()),
-            "knowledge": str(Path(knowledge).resolve())
+            "output": str(Path(output)),
+            "intermediate": str(Path(intermediate)),
+            "knowledge": str(Path(knowledge))
         }
         self._save_config(config)
 
@@ -54,6 +55,9 @@ class LocalStorageManager:
             raise HTTPException(status_code=400, detail=f"Category {category} missing.")
 
         path = Path(path_str)
+        if not path.is_absolute():
+            path = (self.project_root / path).resolve()
+            
         if not path.exists():
             # Help the user by showing exactly where it's looking
             raise HTTPException(
