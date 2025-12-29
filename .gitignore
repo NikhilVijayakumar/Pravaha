@@ -212,3 +212,15 @@ __marimo__/
 /.idea/misc.xml
 /.idea/modules.xml
 /.idea/Pravaha.iml
+/.Pravaha/storage_config.json
+/intermediate/nested_inter/temp.json
+/intermediate/step1.json
+/intermediate/temp.json
+/knowledge/docs/manual/guide.md
+/knowledge/nested_wiki/python.md
+/knowledge/readme.txt
+/knowledge/root_info.md
+/output/nested_folder/deep_file.txt
+/output/nested_output/data.json
+/output/root_file.txt
+/output/root_result.json

@@ -63,7 +63,7 @@ class SimpleBotManager:
 app = FastAPI(title="Pravaha Example Server")
 
 # 1. Setup Storage
-storage_manager = LocalStorageManager() # defaults to .Amsha/output etc
+storage_manager = LocalStorageManager() # defaults to root output, intermediate, knowledge
 storage_provider = StorageAPIProvider(storage_manager)
 app.include_router(storage_provider.router)
 

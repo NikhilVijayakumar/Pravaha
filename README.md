@@ -1,6 +1,6 @@
 # Pravaha - FastAPI Protocol Library for LLM/Agent Applications
 
-**Version:** 1.0.0
+**Version:** 1.0.6
 
 Pravaha is a lightweight FastAPI library that provides a protocol-based architecture for building APIs that handle both synchronous non-blocking tasks and asynchronous streaming operations for LLM and agent applications.
 
@@ -404,7 +404,11 @@ Contributions are welcome! Please follow these guidelines:
 
 ---
 
-## Changelog
+### Version 1.0.6
+- Storage paths moved to project root (output, intermediate, knowledge)
+- Added new Storage API endpoints for recursive browsing (/browse) and reading (/read)
+- Made 'inputs' optional in BotManager stream_run protocol
+- Added local storage config support in .Pravaha/storage_config.json
 
 ### Version 1.0.0
 - Initial release
@@ -412,3 +416,69 @@ Contributions are welcome! Please follow these guidelines:
 - SSE streaming support
 - Sync to async conversion for streaming
 - Full type safety with Pydantic
+
+---
+
+## Storage API
+Pravaha includes a built-in Storage Manager that organizes data into three standard categories: `output`, `intermediate`, and `knowledge`.
+
+### Configuration
+By default, the storage manager uses the following directories in your project root:
+- `./output`
+- `./intermediate`
+- `./knowledge`
+
+You can customize these paths via `POST /storage/config` or by editing `.Pravaha/storage_config.json`.
+
+### New Endpoints
+We support recursive file browsing and reading:
+
+**Browse Folder:**
+```bash
+GET /storage/{category}/browse?path=nested/folder
+# Returns list of files and folders in the specified path
+```
+
+**Read File:**
+```bash
+GET /storage/{category}/read?path=nested/folder/file.json
+# Returns file content (parsed JSON if .json, else string)
+```
+
+---
+
+## Updates to Bot Protocol
+The `stream_run` method now accepts optional inputs:
+```python
+def stream_run(self, application_task: AT, inputs: Optional[List[Dict[str, Any]]] = None):
+    # Handle case where inputs is None
+    pass
+```
+This allows streaming applications to be triggered by just a task name (e.g., "start_chat") without initial payloads.
+
+---
+
+## Running the Example
+We have provided a full example implementation in `src/nikhil/pravaha_example`.
+
+1. **Install dependencies:**
+   ```bash
+   pip install uvicorn
+   ```
+
+2. **Generate Test Data (Optional):**
+   Run the helper script to create sample nested storage data:
+   ```bash
+   python generate_data.py
+   ```
+
+3. **Run the Server:**
+   ```bash
+   python src/nikhil/pravaha_example/service/server.py
+   ```
+   The server will start at `http://127.0.0.1:8000`.
+
+4. **Test Endpoints:**
+   - **Swagger UI:** Visit `http://127.0.0.1:8000/docs`
+   - **Stream (No Inputs):** `POST /run/application/stream` with `{"task_name": "math_assistant"}`
+   - **Browse Storage:** `GET /storage/output/browse`

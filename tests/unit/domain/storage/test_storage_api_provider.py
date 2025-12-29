@@ -111,3 +111,64 @@ def test_get_content_text(client, mock_storage_manager, tmp_path):
     assert response.status_code == 200
     # content handler returns {"content": ...}
     assert response.json() == {"content": "hello world"}
+
+def test_browse_root(client, mock_storage_manager, tmp_path):
+    target_dir = tmp_path / "browse_root"
+    target_dir.mkdir()
+    (target_dir / "folder1").mkdir()
+    (target_dir / "file1.txt").touch()
+    
+    # Write some content so size > 0
+    (target_dir / "file1.txt").write_text("content")
+
+    mock_storage_manager.get_path.return_value = target_dir
+    
+    response = client.get("/storage/output/browse")
+    assert response.status_code == 200
+    items = response.json()["items"]
+    # Expect sorted: folder then file? No, my implementation sort key was: (type!=folder, name)
+    # folder => 0, file => 1. So folders first.
+    
+    assert len(items) == 2
+    assert items[0]["name"] == "folder1"
+    assert items[0]["type"] == "folder"
+    
+    assert items[1]["name"] == "file1.txt"
+    assert items[1]["type"] == "file"
+    assert items[1]["size"] > 0
+
+def test_browse_subfolder(client, mock_storage_manager, tmp_path):
+    target_dir = tmp_path / "browse_base"
+    target_dir.mkdir()
+    sub_dir = target_dir / "sub"
+    sub_dir.mkdir()
+    (sub_dir / "deep_file.txt").touch()
+
+    mock_storage_manager.get_path.return_value = target_dir
+    
+    # Path param encoded
+    response = client.get("/storage/output/browse?path=sub")
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) == 1
+    assert items[0]["name"] == "deep_file.txt"
+
+def test_browse_security(client, mock_storage_manager, tmp_path):
+    target_dir = tmp_path / "browse_secure"
+    target_dir.mkdir()
+    
+    mock_storage_manager.get_path.return_value = target_dir
+    
+    # Try traversing up
+    response = client.get("/storage/output/browse?path=..")
+    assert response.status_code == 403
+    
+    # Try absolute path outside?
+    # (base_path / path).resolve() handle this? Depends on implementation.
+    # If path is absolute, pathlib joined might ignore base.
+    # Security check: startswith base path.
+    
+    # Construct a path that resolves outside
+    outside = target_dir.parent
+    # We can't easily pass absolute path unless client allows. 
+    # But ".." should be caught.

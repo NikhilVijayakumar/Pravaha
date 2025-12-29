@@ -87,7 +87,11 @@ def test_create_bot_api_stream(mock_bot_manager, mock_task_config):
     assert "data: chunk1.n.n" in response.text
     assert "data: chunk2.n.n" in response.text
     assert "data: chunk2.n.n" in response.text
+    assert "data: chunk2.n.n" in response.text
     assert "data: [DONE].n.n" in response.text
+
+    # Assert correct call signature (no inputs passed)
+    mock_bot_manager.stream_run.assert_called_with(MockApp.APP_1)
 
 def test_create_bot_api_stream_sync(mock_bot_manager, mock_task_config):
     # Mock stream_run to return a sync iterator
@@ -137,3 +141,31 @@ def test_create_fastapi_app(mock_bot_manager, mock_task_config):
     response = client.get("/api/enums/util-types")
     assert response.status_code == 200
     assert response.json() == ["util_1"]
+
+def test_create_bot_api_stream_with_inputs(mock_bot_manager, mock_task_config):
+    # Mock stream_run to return an async iterator
+    async def async_gen(task_name, inputs=None):
+        yield "chunk1"
+    
+    # We set side_effect instead of return_value to verify arguments if needed, 
+    # but return_value is enough if we just verify the call at the end.
+    mock_bot_manager.stream_run.return_value = async_gen("app_1")
+    
+    router = create_bot_api(mock_bot_manager, mock_task_config)
+    from fastapi import FastAPI
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+    
+    inputs_data = [{"key": "value"}]
+    # We use the raw string "app_1" which the MockApp enum converts to?
+    # Actually Pydantic casts it to the Enum member. 
+    # The Mock configured in the fixture has MockApp.APP_1.value = "app_1"
+    
+    response = client.post("/run/application/stream", json={"task_name": "app_1", "inputs": inputs_data})
+    assert response.status_code == 200
+    assert "data: chunk1.n.n" in response.text
+    
+    # Assert correct call signature (WITH inputs passed)
+    mock_bot_manager.stream_run.assert_called_with(MockApp.APP_1, inputs=inputs_data)
+

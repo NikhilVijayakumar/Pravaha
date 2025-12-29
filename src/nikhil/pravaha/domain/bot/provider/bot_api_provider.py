@@ -37,7 +37,11 @@ class BotAPIProvider:
 
     async def run_application_stream(self, req: ApplicationRequest):
         try:
-            stream = self.bot_manager.stream_run(req.task_name, inputs=req.inputs)
+            if req.inputs:
+                stream = self.bot_manager.stream_run(req.task_name, inputs=req.inputs)
+            else:
+                stream = self.bot_manager.stream_run(req.task_name)
+
             return EventSourceResponse(
                 self._event_generator(stream),
                 headers={

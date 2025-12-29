@@ -1,4 +1,4 @@
-# src.nikhil.pravaha.domain.storage.manager.local_storage_manager.py
+import os
 import json
 from pathlib import Path
 
@@ -8,17 +8,22 @@ from fastapi import HTTPException
 class LocalStorageManager:
     def __init__(self, config_file: str = "storage_config.json"):
 
-        self.project_root = Path(__file__).parent.parent.parent.parent.resolve()
-        self.config_file = Path(config_file)
+        self.project_root = Path(os.getcwd())
+        
+        # Store config in .Pravaha directory
+        self.config_dir = self.project_root / ".Pravaha"
+        self.config_dir.mkdir(exist_ok=True)
+        
+        self.config_file = self.config_dir / config_file
         self._ensure_defaults()
 
     def _ensure_defaults(self):
         """Sets up default paths relative to project root if no config exists."""
         if not self.config_file.exists():
             defaults = {
-                "output": str(self.project_root / ".Amsha" / "output" / "final" / "output"),
-                "intermediate": str(self.project_root / ".Amsha" / "output" / "intermediate" / "output"),
-                "knowledge": str(self.project_root / "data" / "knowledge")
+                "output": str(self.project_root / "output"),
+                "intermediate": str(self.project_root / "intermediate"),
+                "knowledge": str(self.project_root / "knowledge")
             }
 
             for path_str in defaults.values():
