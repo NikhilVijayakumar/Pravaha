@@ -20,3 +20,11 @@ class BotManagerProtocol(Protocol[UT, AT]):
         Iterable[str], AsyncIterable[str]]:
         """Streamable execution of an application task (typed by AT)."""
         ...
+
+    def get_input_model(self, task: Union[UT, AT]) -> Optional[Any]:
+        """Returns the Pydantic model for the task's input."""
+        ...
+
+    def get_output_model(self, task: Union[UT, AT]) -> Optional[Any]:
+        """Returns the Pydantic model for the task's output."""
+        ...

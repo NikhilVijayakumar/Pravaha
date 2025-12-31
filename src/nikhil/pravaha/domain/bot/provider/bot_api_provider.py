@@ -1,5 +1,7 @@
 import inspect
 from fastapi import APIRouter, HTTPException
+from typing import Union
+from pydantic import BaseModel
 from pravaha.domain.bot.model.application_request import ApplicationRequest
 from pravaha.domain.bot.model.utility_request import UtilityRequest
 from pravaha.domain.bot.streaming.sync_to_async import stream_from_sync_iterable
@@ -27,6 +29,10 @@ class BotAPIProvider:
         self.router.get("/enums/util-types")(self.get_util_types)
         self.router.get("/enums/application-types")(self.get_app_types)
         self.router.get("/enums/execution-targets")(self.get_exec_targets)
+
+        # Schema Routes
+        self.router.get("/protocol/schema/input/{task_name}")(self.get_input_schema)
+        self.router.get("/protocol/schema/output/{task_name}")(self.get_output_schema)
 
     async def run_utility(self, req: UtilityRequest):
         try:
@@ -76,3 +82,36 @@ class BotAPIProvider:
 
     async def get_exec_targets(self):
         return [e.value for e in self.task_config.ExecutionTarget]
+
+    async def get_input_schema(self, task_name: str):
+        task_enum = self._get_task_enum(task_name)
+        if not task_enum:
+             raise HTTPException(status_code=404, detail=f"Task {task_name} not found")
+        
+        model = self.bot_manager.get_input_model(task_enum)
+        if model:
+            return model.model_json_schema()
+        return {}
+
+    async def get_output_schema(self, task_name: str):
+        task_enum = self._get_task_enum(task_name)
+        if not task_enum:
+             raise HTTPException(status_code=404, detail=f"Task {task_name} not found")
+
+        model = self.bot_manager.get_output_model(task_enum)
+        if model:
+            return model.model_json_schema()
+        return {}
+
+    def _get_task_enum(self, task_name: str):
+        # Try finding in UtilsType
+        for member in self.task_config.UtilsType:
+            if member.value == task_name:
+                return member
+        
+        # Try finding in ApplicationType
+        for member in self.task_config.ApplicationType:
+            if member.value == task_name:
+                return member
+        
+        return None

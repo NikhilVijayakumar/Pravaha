@@ -11,6 +11,7 @@ class StorageAPIProvider:
 
     def _setup_routes(self):
         self.router.post("/config")(self.set_storage_config)
+        self.router.get("/schema/config")(self.get_config_schema)
 
         # Explicit categories
         categories = ["output", "intermediate", "knowledge"]
@@ -29,6 +30,9 @@ class StorageAPIProvider:
     async def set_storage_config(self, req: StorageConfigRequest):
         self.storage_manager.update_config(req.output_path, req.intermediate_path, req.knowledge_path)
         return {"status": "Configured successfully"}
+
+    async def get_config_schema(self):
+        return StorageConfigRequest.model_json_schema()
 
     def _create_browse_handler(self, category: str):
         async def handler(path: str = ""):

@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from pydantic import BaseModel, Field
+from typing import Optional, Type, Any
 from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
 from pravaha.domain.storage.provider.storage_api_provider import StorageAPIProvider
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
@@ -10,6 +12,20 @@ from pravaha_example.domain.math_bot import MathBot
 
 # Define a simple BotManager stub to wire things up
 # In a real app, this might be more complex or imported from domain/bot/manager
+# Sample Models
+class CalculatorInput(BaseModel):
+    operation: str = Field(..., description="The operation to perform: add, multiply", pattern="^(add|multiply)$")
+    a: float = Field(..., description="First operand")
+    b: float = Field(..., description="Second operand")
+
+class MathBotInput(BaseModel):
+    expression: str = Field(..., description="Mathematical expression to evaluate")
+
+class GenericOutput(BaseModel):
+    result: Any = Field(..., description="Result of the operation")
+
+# Define a simple BotManager stub to wire things up
+# In a real app, this might be more complex or imported from domain/bot/manager
 class SimpleBotManager:
     def __init__(self):
         self.apps = {
@@ -17,6 +33,16 @@ class SimpleBotManager:
         }
         self.utils = {
            UtilsType.CALCULATOR: CalculatorTool()
+        }
+        
+        self.input_models = {
+            UtilsType.CALCULATOR: CalculatorInput,
+            ApplicationType.MATH_ASSISTANT: MathBotInput
+        }
+        
+        self.output_models = {
+            UtilsType.CALCULATOR: GenericOutput,
+            ApplicationType.MATH_ASSISTANT: GenericOutput
         }
 
     def run(self, utility_task: str, inputs=None):
@@ -58,6 +84,25 @@ class SimpleBotManager:
                  yield f"Error: App {application_task} not found"
              return error_gen()
         return app.stream_run(inputs)
+
+    def get_input_model(self, task) -> Optional[Type[BaseModel]]:
+        # Handle string vs Enum lookup if needed, similar to run()
+        # But assumes provider passes Enum if resolved
+        if task in self.input_models:
+            return self.input_models[task]
+        # Fallback for string lookup
+        for k, v in self.input_models.items():
+            if k.value == task:
+                return v
+        return None
+
+    def get_output_model(self, task) -> Optional[Type[BaseModel]]:
+         if task in self.output_models:
+            return self.output_models[task]
+         for k, v in self.output_models.items():
+            if k.value == task:
+                return v
+         return None
 
 # Create App
 app = FastAPI(title="Pravaha Example Server")
