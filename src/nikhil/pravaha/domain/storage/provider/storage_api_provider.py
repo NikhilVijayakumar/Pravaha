@@ -11,6 +11,7 @@ class StorageAPIProvider:
 
     def _setup_routes(self):
         self.router.post("/config")(self.set_storage_config)
+        self.router.get("/config")(self.get_storage_config)
         self.router.get("/schema/config")(self.get_config_schema)
 
         # Explicit categories
@@ -30,6 +31,21 @@ class StorageAPIProvider:
     async def set_storage_config(self, req: StorageConfigRequest):
         self.storage_manager.update_config(req.output_path, req.intermediate_path, req.knowledge_path)
         return {"status": "Configured successfully"}
+
+    async def get_storage_config(self):
+        config = self.storage_manager.get_config()
+        # Map config keys to request model fields if necessary,
+        # but here they match: "output", "intermediate", "knowledge"
+        # The request model expects output_path, etc.
+        # Let's check StorageConfigRequest definition again.
+        # It has output_path, intermediate_path, knowledge_path.
+        # The storage manager config keys are likely "output", "intermediate", "knowledge".
+        
+        return {
+            "output_path": config.get("output"),
+            "intermediate_path": config.get("intermediate"),
+            "knowledge_path": config.get("knowledge")
+        }
 
     async def get_config_schema(self):
         return StorageConfigRequest.model_json_schema()

@@ -1,0 +1,1 @@
+**January Summary**: Growth was steady.

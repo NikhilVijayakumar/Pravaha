@@ -25,3 +25,18 @@ def test_get_config_schema(client):
     assert "intermediate_path" in schema["properties"]
     assert "knowledge_path" in schema["properties"]
     assert schema["title"] == "StorageConfigRequest"
+
+def test_get_storage_config(client, mock_storage_manager):
+    mock_config = {
+        "output": "/out",
+        "intermediate": "/inter",
+        "knowledge": "/know"
+    }
+    mock_storage_manager.get_config.return_value = mock_config
+
+    response = client.get("/storage/config")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["output_path"] == "/out"
+    assert data["intermediate_path"] == "/inter"
+    assert data["knowledge_path"] == "/know"

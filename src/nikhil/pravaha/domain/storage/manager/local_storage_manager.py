@@ -65,3 +65,12 @@ class LocalStorageManager:
                 detail=f"Path for {category} not found at: {path.absolute()}"
             )
         return path
+
+    def get_config(self) -> dict:
+        """Returns the full current configuration."""
+        if not self.config_file.exists():
+            # Should normally not happen due to _ensure_defaults
+            return {}
+            
+        with open(self.config_file, "r") as f:
+            return json.load(f)

@@ -1,0 +1,2 @@
+- [2025-01-01] Initialized knowledge base.
+- [2025-01-02] Added physics domain.
