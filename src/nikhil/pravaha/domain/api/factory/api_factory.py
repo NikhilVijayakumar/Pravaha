@@ -5,8 +5,8 @@ from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
 from pravaha.domain.storage.provider.storage_api_provider import StorageAPIProvider
 
 
-def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api") -> FastAPI:
-    app = FastAPI(title="Akashvani Unified API")
+def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api",title="Akashvani Unified API") -> FastAPI:
+    app = FastAPI(title=title)
 
     app.add_middleware(
         CORSMiddleware,

@@ -105,12 +105,12 @@ class SimpleBotManager:
          return None
 
 # Create App
-app = FastAPI(title="Pravaha Example Server")
+
 
 # 1. Setup Storage
 storage_manager = LocalStorageManager() # defaults to root output, intermediate, knowledge
 storage_provider = StorageAPIProvider(storage_manager)
-app.include_router(storage_provider.router)
+
 
 # 2. Setup Bot
 # Mocking a task_config object that has the Enums as attributes
@@ -123,7 +123,14 @@ task_config.ExecutionTarget = ExecutionTarget
 
 bot_manager = SimpleBotManager()
 bot_provider = BotAPIProvider(bot_manager, task_config)
-app.include_router(bot_provider.router)
+
+
+app = create_fastapi_app(
+    bot_manager=bot_manager,
+    task_config=task_config,
+    storage_manager=storage_manager,
+    title="Pravaha Mock API"
+)
 
 if __name__ == "__main__":
     import uvicorn
