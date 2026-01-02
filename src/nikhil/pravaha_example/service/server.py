@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import Optional, Type, Any
+
+from pravaha.domain.api.factory.api_factory import create_fastapi_app
 from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
 from pravaha.domain.storage.provider.storage_api_provider import StorageAPIProvider
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
