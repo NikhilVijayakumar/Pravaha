@@ -12,15 +12,15 @@ class WorkflowAPIProvider:
 
     def _setup_routes(self):
         # Workflow CRUD
-        self.router.post("/workflow", response_model=Workflow)(self.create_workflow)
-        self.router.get("/workflow", response_model=List[Workflow])(self.list_workflows)
+        self.router.post("/workflow/create", response_model=Workflow)(self.create_workflow)
+        self.router.get("/workflow/list", response_model=List[Workflow])(self.list_workflows) # Added explicit list for consistency if desired
         self.router.get("/workflow/{workflow_id}", response_model=Workflow)(self.get_workflow)
         self.router.delete("/workflow/{workflow_id}")(self.delete_workflow)
 
-        # Execution
-        self.router.post("/run", response_model=WorkflowRun)(self.trigger_run)
-        self.router.get("/run/{run_id}", response_model=WorkflowRun)(self.get_run)
-        self.router.get("/run", response_model=List[WorkflowRun])(self.list_runs)
+        # Execution - Nested under /workflow/run naming convention
+        self.router.post("/workflow/run", response_model=WorkflowRun)(self.trigger_run)
+        self.router.get("/workflow/run/{run_id}", response_model=WorkflowRun)(self.get_run)
+        self.router.get("/workflow/run", response_model=List[WorkflowRun])(self.list_runs)
 
     async def create_workflow(self, workflow: Workflow):
         return self.workflow_service.create_workflow(workflow)
