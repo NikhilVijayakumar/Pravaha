@@ -1,17 +1,26 @@
 import os
 import json
 from pathlib import Path
+from typing import Optional
 
 from fastapi import HTTPException
 
 
 class LocalStorageManager:
-    def __init__(self):
+    def __init__(self,defaults: Optional[dict[str, str]] = None):
         self.project_root = Path(os.getcwd())
         
         # Strict config path: .Pravaha/config/storage.json
         self.config_dir = self.project_root / ".Pravaha" / "config"
         self.config_file = self.config_dir / "storage.json"
+        if defaults:
+            self.defaults = defaults
+        else:
+            self.defaults = {
+                "output": "output",
+                "intermediate": "intermediate",
+                "knowledge": "knowledge"
+            }
         
         self._ensure_defaults()
 
@@ -21,16 +30,10 @@ class LocalStorageManager:
             # Ensure config directory exists
             self.config_dir.mkdir(parents=True, exist_ok=True)
 
-            defaults = {
-                "output": "output",
-                "intermediate": "intermediate",
-                "knowledge": "knowledge"
-            }
-
-            for path_str in defaults.values():
+            for path_str in self.defaults.values():
                 (self.project_root / path_str).mkdir(parents=True, exist_ok=True)
 
-            self._save_config(defaults)
+            self._save_config(self.defaults)
 
     def _save_config(self, data: dict):
         with open(self.config_file, "w") as f:
