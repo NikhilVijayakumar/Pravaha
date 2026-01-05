@@ -14,7 +14,10 @@ from pravaha.domain.workflow.service.workflow_service import WorkflowService
 from pravaha.domain.workflow.provider.workflow_api_provider import WorkflowAPIProvider
 
 
-def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api",title="Akashvani Unified API") -> FastAPI:
+from typing import Optional
+from pathlib import Path
+
+def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api", title="Akashvani Unified API", llm_config_path: Optional[str] = None) -> FastAPI:
     app = FastAPI(title=title)
 
     app.add_middleware(
@@ -33,7 +36,7 @@ def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api",t
     from pravaha.domain.storage.logic.path_resolver import StoragePathResolver
     from pravaha.domain.storage.logic.version_resolver import ArtifactVersionResolver
     
-    llm_config_manager = LLMConfigManager()
+    llm_config_manager = LLMConfigManager(Path(llm_config_path) if llm_config_path else None)
     version_resolver = ArtifactVersionResolver(storage_manager, llm_config_manager)
     path_resolver = StoragePathResolver(storage_manager, llm_config_manager, version_resolver)
     

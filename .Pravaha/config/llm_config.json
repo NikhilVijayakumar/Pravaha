@@ -1,0 +1,181 @@
+{
+  "llm": {
+    "creative": {
+      "default": "gemini",
+      "models": {
+        "gemma": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/gemma-3-12b-it",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "gemma-3-12b",
+            "structure": "folder",
+            "folder_name": "gemma",
+            "display_name": "Gemma 3 12B"
+          }
+        },
+        "mn-12b-lyra-v1": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/mn-12b-lyra-v1",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "mn-12b-lyra",
+            "structure": "folder",
+            "folder_name": "mistral_nemo",
+            "display_name": "Mistral Nemo 12B Lyra"
+          }
+        },
+        "gpt": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/openai/gpt-oss-20b",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "gpt-oss-20b",
+            "structure": "folder",
+            "folder_name": "openai",
+            "display_name": "GPT OSS 20B"
+          }
+        },
+        "qwen": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/qwen3-14b",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "qwen3-14b",
+            "structure": "folder",
+            "folder_name": "qwen",
+            "display_name": "Qwen 3 14B"
+          }
+        },
+        "gemini": {
+          "model": "gemini/gemini-2.5-flash",
+          "api_key": "AIzaSyBEagE0z6Il5JKZ2nBQFaG-0JSuqtQEUk8",
+          "output_config": {
+            "alias": "gemini-2.5-flash",
+            "structure": "flat",
+            "display_name": "Gemini 2.5 Flash"
+          }
+        },
+        "llama": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/meta-llama-3.1-8b-instruct",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "llama-3.1-8b",
+            "structure": "folder",
+            "folder_name": "llama",
+            "display_name": "Llama 3.1 8B"
+          }
+        },
+        "phi": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/microsoft/phi-4-reasoning-plus",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "phi-4",
+            "structure": "folder",
+            "folder_name": "phi",
+            "display_name": "Phi 4"
+          }
+        },
+        "open_router": {
+          "base_url": "https://openrouter.ai/api/v1",
+          "model": "openrouter/openai/gpt-oss-120b:free",
+          "api_key": "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",
+          "output_config": {
+            "alias": "gpt-oss-120b",
+            "structure": "folder",
+            "folder_name": "open_router",
+            "display_name": "GPT OSS 120B (OpenRouter)"
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "default": "gpt",
+      "models": {
+        "gpt": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/openai/gpt-oss-20b",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "gpt-oss-20b",
+            "structure": "folder",
+            "folder_name": "openai",
+            "display_name": "GPT OSS 20B"
+          }
+        },
+        "llama": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/meta-llama-3.1-8b-instruct",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "llama-3.1-8b",
+            "structure": "folder",
+            "folder_name": "llama",
+            "display_name": "Llama 3.1 8B"
+          }
+        },
+        "qwen": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/qwen3-14b",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "qwen3-14b",
+            "structure": "folder",
+            "folder_name": "qwen",
+            "display_name": "Qwen 3 14B"
+          }
+        },
+        "phi": {
+          "base_url": "http://localhost:1234/v1",
+          "model": "lm_studio/microsoft/phi-4-reasoning-plus",
+          "api_key": "lm_studio",
+          "output_config": {
+            "alias": "phi-4",
+            "structure": "folder",
+            "folder_name": "phi",
+            "display_name": "Phi 4"
+          }
+        },
+        "gemini": {
+          "model": "gemini/gemini-2.0-flash",
+          "api_key": "AIzaSyBEagE0z6Il5JKZ2nBQFaG-0JSuqtQEUk8",
+          "output_config": {
+            "alias": "gemini-2.0-flash",
+            "structure": "flat",
+            "display_name": "Gemini 2.0 Flash"
+          }
+        },
+        "open_router": {
+          "base_url": "https://openrouter.ai/api/v1",
+          "model": "openrouter/openai/gpt-oss-120b:free",
+          "api_key": "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",
+          "output_config": {
+            "alias": "gpt-oss-120b",
+            "structure": "folder",
+            "folder_name": "open_router",
+            "display_name": "GPT OSS 120B (OpenRouter)"
+          }
+        }
+      }
+    }
+  },
+  "llm_parameters": {
+    "creative": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "max_completion_tokens": 8192,
+      "stop": [
+        "###"
+      ]
+    },
+    "evaluation": {
+      "temperature": 0.0,
+      "top_p": 0.5,
+      "stop": [
+        "###"
+      ]
+    }
+  }
+}

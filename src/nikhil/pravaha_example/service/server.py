@@ -108,11 +108,8 @@ class SimpleBotManager:
 
 # Create App
 
-
 # 1. Setup Storage
 storage_manager = LocalStorageManager() # defaults to root output, intermediate, knowledge
-storage_provider = StorageAPIProvider(storage_manager)
-
 
 # 2. Setup Bot
 # Mocking a task_config object that has the Enums as attributes
@@ -124,16 +121,30 @@ task_config.UtilsType = UtilsType
 task_config.ExecutionTarget = ExecutionTarget
 
 bot_manager = SimpleBotManager()
-bot_provider = BotAPIProvider(bot_manager, task_config)
 
+# 3. Create App with all providers (Storage, Bot, Workflow, LLM)
+# Get absolute path to local config
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Correct path to llm_config.yaml (it's in parent dir based on file structure: src/nikhil/pravaha_example/llm_config.yaml)
+# server.py is in src/nikhil/pravaha_example/service/server.py
+# So we need to go up one level
+config_path = os.path.join(os.path.dirname(current_dir), "llm_config.yaml")
+
+# Ensure data directory for workflows
+data_dir = os.path.join(os.getcwd(), "data")
+os.makedirs(data_dir, exist_ok=True)
 
 app = create_fastapi_app(
     bot_manager=bot_manager,
     task_config=task_config,
     storage_manager=storage_manager,
-    title="Pravaha Mock API"
+    title="Pravaha Example API",
+    llm_config_path=config_path
 )
 
 if __name__ == "__main__":
     import uvicorn
+    # Make sure to run from project root to ensure python path works or set PYTHONPATH
+    print(f"Loading config from: {config_path}")
     uvicorn.run(app, host="127.0.0.1", port=8000)

@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -97,73 +98,170 @@ class StorageAPIProvider:
             return
             
         stage_str = "intermediate" if stage == StorageStage.INTERMEDIATE else "final"
+        project_root = self.storage_manager.project_root
         
-        for root, dirs, files in os.walk(directory):
-            for file in files:
-                if not file.endswith(".json"):
-                    continue
-                
-                stem = Path(file).stem
-                parts = stem.rsplit("_", 1)
-                
-                version = 1
-                alias = stem
-                
-                if len(parts) == 2 and parts[1].isdigit():
-                    alias = parts[0]
-                    version = int(parts[1]) + 1
-                
-                if model_filter and alias != model_filter:
-                    continue
-                
-                # Resolve Display Name
-                config = self.llm_config.resolve_output_config(alias)
-                display_name = config.get("display_name", alias)
-                
-                full_path = Path(root) / file
-                stats = full_path.stat()
-                created_at = datetime.fromtimestamp(stats.st_ctime).isoformat()
-                
-                artifacts.append({
-                    "feature": feature,
-                    "product": product,
-                    "model": alias,
-                    "version": version,
-                    "stage": stage_str,
-                    "path": str(full_path),
-                    "created_at": created_at,
-                    "display_name": display_name
-                })
+        valid_extensions = {".json", ".yaml", ".md", ".txt"}
+
+        # Pre-calc intermediate timestamps if needed
+        timestamp_map = {}
+        if stage == StorageStage.INTERMEDIATE:
+            # Gather all output_TIMESTAMP dirs
+            ts_dirs = []
+            ts_pattern = re.compile(r"^output_(\d{14})$")
+            for child in directory.iterdir():
+                if child.is_dir() and ts_pattern.match(child.name):
+                    ts_dirs.append(child.name)
+            ts_dirs.sort() # Ascending
+            # Map timestamp string to version number (1..N)
+            timestamp_map = {ts: i+1 for i, ts in enumerate(ts_dirs)}
+
+        # Walk logic needs adjustment. 
+        # For Intermediate, we only care about output_TIMESTAMP folders in 'directory'.
+        # For Final, we use recursive walk or specific structure scan.
+        
+        if stage == StorageStage.INTERMEDIATE:
+             # Logic for Intermediate: Only look into output_TIMESTAMP folders
+             for root_path, dirs, files in os.walk(directory):
+                 # We only care about files inside output_TIMESTAMP directories
+                 # root_path might be .../Feature/output_TIMESTAMP
+                 rel_from_base = Path(root_path).name 
+                 parent_name = Path(root_path).name
+                 
+                 # Check if this folder is a timestamp folder
+                 if parent_name in timestamp_map:
+                     current_version = timestamp_map[parent_name]
+                 else:
+                     continue
+                 
+                 for file in files:
+                    file_path = Path(file)
+                    if file_path.suffix not in valid_extensions:
+                        continue
+                    
+                    alias = file_path.stem
+                    
+                    if model_filter and alias != model_filter:
+                        continue
+                    
+                    # Resolve Display Name
+                    config = self.llm_config.resolve_output_config(alias)
+                    resolved_name = config.get("display_name", alias)
+                    display_name = f"{resolved_name}{file_path.suffix}"
+                    
+                    full_path = Path(root_path) / file
+                    try:
+                        relative_path = str(full_path.relative_to(project_root))
+                    except ValueError:
+                         relative_path = str(full_path)
+
+                    stats = full_path.stat()
+                    created_at = datetime.fromtimestamp(stats.st_ctime).isoformat()
+                    
+                    artifacts.append({
+                        "feature": feature,
+                        "product": product,
+                        "model": alias,
+                        "version": current_version, # Calculated from timestamp rank
+                        "stage": stage_str,
+                        "path": relative_path,
+                        "created_at": created_at,
+                        "display_name": display_name
+                    })
+
+        else:
+            # Logic for Final (existing-ish logic)
+            for root_path, dirs, files in os.walk(directory):
+                for file in files:
+                    file_path = Path(file)
+                    if file_path.suffix not in valid_extensions:
+                        continue
+                    
+                    stem = file_path.stem
+                    parts = stem.rsplit("_", 1)
+                    
+                    version = 1
+                    alias = stem
+                    
+                    if len(parts) == 2 and parts[1].isdigit():
+                        alias = parts[0]
+                        version = int(parts[1]) + 1
+                    
+                    if model_filter and alias != model_filter:
+                        continue
+                    
+                    # Resolve Display Name
+                    config = self.llm_config.resolve_output_config(alias)
+                    resolved_name = config.get("display_name", alias)
+                    display_name = f"{resolved_name}{file_path.suffix}"
+                    
+                    full_path = Path(root_path) / file
+                    try:
+                        relative_path = str(full_path.relative_to(project_root))
+                    except ValueError:
+                         relative_path = str(full_path)
+
+                    stats = full_path.stat()
+                    created_at = datetime.fromtimestamp(stats.st_ctime).isoformat()
+                    
+                    artifacts.append({
+                        "feature": feature,
+                        "product": product,
+                        "model": alias,
+                        "version": version,
+                        "stage": stage_str,
+                        "path": relative_path,
+                        "created_at": created_at,
+                        "display_name": display_name
+                    })
 
     def _group_artifacts(self, artifacts: List[dict]) -> List[GroupedArtifactMetadata]:
         grouped = {}
+        # Track seen paths per group to avoid duplicates
+        seen_paths = {}
+
         for art in artifacts:
+            feature = art.get("feature")
+            product = art.get("product")
             model = art["model"]
-            if model not in grouped:
-                grouped[model] = {
-                    "feature": art["feature"],
-                    "product": art["product"],
+            stage = art["stage"]
+            
+            # Composite key for grouping
+            # (feature, product, model, stage)
+            key = (feature, product, model, stage)
+            
+            if key not in grouped:
+                grouped[key] = {
+                    "feature": feature,
+                    "product": product,
                     "model": model,
-                    "stage": art["stage"],
+                    "stage": stage,
                     "display_name": art["display_name"],
                     "latest_version": 0,
                     "versions": []
                 }
+                seen_paths[key] = set()
+            
+            # Check for duplicate path in this group
+            path_val = art["path"]
+            if path_val in seen_paths[key]:
+                continue
+            
+            seen_paths[key].add(path_val)
             
             # Add version info
-            grouped[model]["versions"].append({
+            grouped[key]["versions"].append({
                 "version": art["version"],
-                "path": art["path"],
+                "path": path_val,
                 "created_at": art["created_at"]
             })
             
             # Update latest version
-            if art["version"] > grouped[model]["latest_version"]:
-                grouped[model]["latest_version"] = art["version"]
+            if art["version"] > grouped[key]["latest_version"]:
+                grouped[key]["latest_version"] = art["version"]
         
         # Convert to list and sort versions
         result = []
-        for model, data in grouped.items():
+        for key, data in grouped.items():
             data["versions"].sort(key=lambda x: x["version"], reverse=True)
             result.append(data)
             
@@ -234,11 +332,15 @@ class StorageAPIProvider:
 
             content = file_path.read_text(encoding='utf-8')
             parsed_content = content
+            
             if file_path.suffix == ".json":
                 try:
                     parsed_content = json.loads(content)
                 except json.JSONDecodeError:
                     parsed_content = content
+            
+            # For yaml, md, txt, we return the string content directly.
+            # Only JSON attempts to become a dict/list.
             
             return {"content": parsed_content}
         return handler
