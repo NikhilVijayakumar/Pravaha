@@ -1,4 +1,5 @@
 import shutil
+import json
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -10,13 +11,20 @@ class LLMConfigManager(LLMConfigManagerProtocol):
         self.project_root = Path.cwd()
         # Internal cache location
         self.config_dir = self.project_root / ".Pravaha" / "config"
-        self.config_file = self.config_dir / "llm_config.yaml"
+        self.config_file = self.config_dir / "llm_config.json"
         
         # Caching Logic
         if config_path and config_path.exists():
             self.config_dir.mkdir(parents=True, exist_ok=True)
             try:
-                shutil.copy2(config_path, self.config_file)
+                # Read YAML source
+                with open(config_path, "r") as f:
+                    yaml_content = yaml.safe_load(f) or {}
+                
+                # Write JSON cache
+                with open(self.config_file, "w") as f:
+                    json.dump(yaml_content, f, indent=2)
+                    
             except Exception as e:
                 print(f"Warning: Failed to cache LLM config from {config_path}: {e}")
         
@@ -35,7 +43,7 @@ class LLMConfigManager(LLMConfigManagerProtocol):
 
         try:
             with open(self.config_file, "r") as f:
-                self._config_cache = yaml.safe_load(f) or {}
+                self._config_cache = json.load(f) or {}
         except Exception as e:
             print(f"Error loading LLM config: {e}")
             self._config_cache = {}
@@ -70,7 +78,7 @@ class LLMConfigManager(LLMConfigManagerProtocol):
         return {
             "alias": model_key,
             "structure": "flat",
-            "display_name": model_key
+            "display_name": model_key.replace("_", " ").title()
         }
 
     def get_all_config(self) -> Dict[str, Any]:

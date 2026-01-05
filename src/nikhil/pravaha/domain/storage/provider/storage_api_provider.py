@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Query
 
 from pravaha.domain.storage.model.storage_config_request import StorageConfigRequest
-from pravaha.domain.storage.model.artifact_metadata import ArtifactMetadata
+from pravaha.domain.storage.model.artifact_metadata import ArtifactMetadata, GroupedArtifactMetadata, ArtifactVersion
 from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
 from pravaha.domain.storage.protocol.artifact_resolver_protocol import (
     StoragePathResolverProtocol, 
@@ -38,7 +38,10 @@ class StorageAPIProvider:
         self.router.get("/schema/config")(self.get_config_schema)
         
         # Hybrid Endpoints
-        # ... (rest of the code)
+        # Register explicit browse/read endpoints for each category
+        for category in ["intermediate", "output", "knowledge"]:
+            self.router.get(f"/{category}/browse")(self._create_browse_handler(category))
+            self.router.get(f"/{category}/read")(self._create_read_handler(category))
 
     # ... (existing methods)
 
@@ -132,6 +135,40 @@ class StorageAPIProvider:
                     "display_name": display_name
                 })
 
+    def _group_artifacts(self, artifacts: List[dict]) -> List[GroupedArtifactMetadata]:
+        grouped = {}
+        for art in artifacts:
+            model = art["model"]
+            if model not in grouped:
+                grouped[model] = {
+                    "feature": art["feature"],
+                    "product": art["product"],
+                    "model": model,
+                    "stage": art["stage"],
+                    "display_name": art["display_name"],
+                    "latest_version": 0,
+                    "versions": []
+                }
+            
+            # Add version info
+            grouped[model]["versions"].append({
+                "version": art["version"],
+                "path": art["path"],
+                "created_at": art["created_at"]
+            })
+            
+            # Update latest version
+            if art["version"] > grouped[model]["latest_version"]:
+                grouped[model]["latest_version"] = art["version"]
+        
+        # Convert to list and sort versions
+        result = []
+        for model, data in grouped.items():
+            data["versions"].sort(key=lambda x: x["version"], reverse=True)
+            result.append(data)
+            
+        return result
+
     def _create_browse_handler(self, category: str):
         async def handler(path: str = "", feature: Optional[str] = None, product: Optional[str] = None):
             if category == "knowledge":
@@ -160,7 +197,8 @@ class StorageAPIProvider:
             else:
                 # Artifact Logic
                 stage = StorageStage.INTERMEDIATE if category == "intermediate" else StorageStage.FINAL
-                return await self._list_artifacts_logic(stage, feature, product)
+                artifacts = await self._list_artifacts_logic(stage, feature, product)
+                return self._group_artifacts(artifacts)
 
         return handler
 
