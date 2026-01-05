@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -7,12 +8,22 @@ from fastapi import HTTPException
 
 
 class LocalStorageManager:
-    def __init__(self,defaults: Optional[dict[str, str]] = None):
+    def __init__(self, defaults: Optional[dict[str, str]] = None, config_path: Optional[Path] = None):
         self.project_root = Path(os.getcwd())
         
         # Strict config path: .Pravaha/config/storage.json
         self.config_dir = self.project_root / ".Pravaha" / "config"
         self.config_file = self.config_dir / "storage.json"
+        
+        # Caching Logic
+        if config_path and config_path.exists():
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.copy2(config_path, self.config_file)
+            except Exception as e:
+                # Log warning but continue, maybe defaults will work
+               print(f"Warning: Failed to cache Storage config from {config_path}: {e}")
+
         if defaults:
             self.defaults = defaults
         else:

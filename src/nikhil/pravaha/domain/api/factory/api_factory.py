@@ -26,7 +26,23 @@ def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api",t
 
     # Initialize Class-Based Providers
     bot_provider = BotAPIProvider(bot_manager, task_config)
-    storage_provider = StorageAPIProvider(storage_manager)
+    
+    # Initialize Storage Components
+    # We rely on defaults or can pass config path if needed
+    from pravaha.domain.storage.manager.llm_config_manager import LLMConfigManager
+    from pravaha.domain.storage.logic.path_resolver import StoragePathResolver
+    from pravaha.domain.storage.logic.version_resolver import ArtifactVersionResolver
+    
+    llm_config_manager = LLMConfigManager()
+    version_resolver = ArtifactVersionResolver(storage_manager, llm_config_manager)
+    path_resolver = StoragePathResolver(storage_manager, llm_config_manager, version_resolver)
+    
+    storage_provider = StorageAPIProvider(
+        storage_manager,
+        llm_config_manager,
+        path_resolver,
+        version_resolver
+    )
 
     # Initialize Workflow Components
     # Assuming 'data' directory in cwd for persistence
@@ -43,11 +59,16 @@ def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api",t
     
     # Provider
     workflow_provider = WorkflowAPIProvider(workflow_service)
+    
+    # LLM Provider
+    from pravaha.domain.llm.provider.llm_api_provider import LLMAPIProvider
+    llm_api_provider = LLMAPIProvider(llm_config_manager)
 
     # Mount Routers
     app.include_router(bot_provider.router, prefix=f"/{prefix}")
     app.include_router(storage_provider.router, prefix=f"/{prefix}")
     app.include_router(workflow_provider.router, prefix=f"/{prefix}")
+    app.include_router(llm_api_provider.router, prefix=f"/{prefix}/llm")
 
     @app.get("/health")
     async def health():

@@ -225,3 +225,4 @@ __marimo__/
 /output/root_file.txt
 /output/root_result.json
 /.Pravaha/config/storage.json
+/.Pravaha/config/llm_config.yaml

@@ -1,0 +1,16 @@
+llm:
+  creative:
+    models:
+      gemini:
+        model: "gemini/gemini-2.5-flash"
+        output_config:
+          alias: "gemini-2.5-flash"
+          structure: "flat"
+          display_name: "Gemini 2.5 Flash"
+      gpt:
+        model: "lm_studio/openai/gpt-oss-20b"
+        output_config:
+          alias: "gpt-oss-20b"
+          structure: "folder"
+          folder_name: "openai"
+          display_name: "GPT OSS 20B"
