@@ -72,6 +72,7 @@ class IntermediateStorageProvider(BaseStorageProvider):
         if not directory.exists():
             return
 
+        storage_root = self.storage_manager.get_path(self.category)
         ts_pattern = re.compile(r"^output_(\d{14})$")
         timestamp_dirs = sorted(
             [d for d in directory.iterdir() if d.is_dir() and ts_pattern.match(d.name)]
@@ -92,6 +93,9 @@ class IntermediateStorageProvider(BaseStorageProvider):
 
                 config = self.llm_config.resolve_output_config(alias)
                 display_name = f"{config.get('display_name', alias)}{file.suffix}"
+                
+                # Use relative path from storage root
+                relative_path = str(file.relative_to(storage_root)).replace("\\", "/")
 
                 artifacts.append(
                     {
@@ -100,7 +104,7 @@ class IntermediateStorageProvider(BaseStorageProvider):
                         "model": alias,
                         "version": version,
                         "stage": "intermediate",
-                        "path": str(file),
+                        "path": relative_path,
                         "created_at": datetime.fromtimestamp(
                             file.stat().st_ctime
                         ).isoformat(),

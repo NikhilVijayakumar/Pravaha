@@ -3,9 +3,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from pravaha.domain.storage.provider.base_storage_provider import BaseStorageProvider
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
 from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
+from pravaha.domain.storage.provider.base_storage_provider import BaseStorageProvider
 
 
 class OutputStorageProvider(BaseStorageProvider):
@@ -79,6 +79,8 @@ class OutputStorageProvider(BaseStorageProvider):
         model_filter: Optional[str],
     ):
         """Scan output feature directory for versioned artifacts."""
+        storage_root = self.storage_manager.get_path(self.category)
+        
         for root, _, files in os.walk(directory):
             for filename in files:
                 file = Path(root) / filename
@@ -99,6 +101,9 @@ class OutputStorageProvider(BaseStorageProvider):
 
                 config = self.llm_config.resolve_output_config(alias)
                 display_name = f"{config.get('display_name', alias)}{file.suffix}"
+                
+                # Use relative path from storage root
+                relative_path = str(file.relative_to(storage_root)).replace("\\", "/")
 
                 artifacts.append(
                     {
@@ -107,7 +112,7 @@ class OutputStorageProvider(BaseStorageProvider):
                         "model": alias,
                         "version": version,
                         "stage": "final",
-                        "path": str(file),
+                        "path": relative_path,
                         "created_at": datetime.fromtimestamp(
                             file.stat().st_ctime
                         ).isoformat(),

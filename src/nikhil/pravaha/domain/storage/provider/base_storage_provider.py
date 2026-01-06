@@ -1,9 +1,8 @@
 import json
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any, Dict
-from fastapi import HTTPException
 
+from fastapi import HTTPException
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
 
 
@@ -43,7 +42,7 @@ class BaseStorageProvider(ABC):
         Read file content with security checks.
         
         Args:
-            path: Absolute path to the file
+            path: Relative path from category root (e.g., "feature/output_123/model.json")
             
         Returns:
             Dict containing file content
@@ -51,11 +50,16 @@ class BaseStorageProvider(ABC):
         Raises:
             HTTPException: If access is denied or file not found
         """
-        file_path = Path(path).resolve()
         root = self.storage_manager.get_path(self.category).resolve()
+        
+        # Resolve the relative path from category root
+        file_path = (root / path).resolve()
 
         # Security check: ensure file is within allowed root
-        if not str(file_path).startswith(str(root)):
+        # Use try/except to handle path issues and compare with is_relative_to
+        try:
+            file_path.relative_to(root)
+        except ValueError:
             raise HTTPException(status_code=403, detail="Access denied")
 
         if not file_path.exists() or not file_path.is_file():

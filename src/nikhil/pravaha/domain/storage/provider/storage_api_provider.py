@@ -1,11 +1,11 @@
 from typing import Optional
+
 from fastapi import APIRouter
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
 from pravaha.domain.storage.model.storage_config_request import StorageConfigRequest
+from pravaha.domain.storage.protocol.artifact_resolver_protocol import ArtifactVersionResolverProtocol
 from pravaha.domain.storage.protocol.artifact_resolver_protocol import StoragePathResolverProtocol
 from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
-
-from pravaha.domain.storage.protocol.artifact_resolver_protocol import ArtifactVersionResolverProtocol
 from pravaha.domain.storage.provider.intermediate_storage_provider import IntermediateStorageProvider
 from pravaha.domain.storage.provider.knowledge_storage_provider import KnowledgeStorageProvider
 from pravaha.domain.storage.provider.output_storage_provider import OutputStorageProvider
@@ -78,11 +78,17 @@ class StorageAPIProvider:
             feature: Optional[str] = None,
             product: Optional[str] = None,
             model: Optional[str] = None,
+            path: Optional[str] = None,
         ):
             provider = self.providers[category]
-            return await provider.browse(
-                feature=feature, product=product, model=model
-            )
+            
+            # Knowledge category uses 'path' parameter, others use feature/product/model
+            if category == "knowledge":
+                return await provider.browse(path=path)
+            else:
+                return await provider.browse(
+                    feature=feature, product=product, model=model
+                )
 
         return handler
 

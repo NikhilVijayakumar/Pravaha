@@ -1,9 +1,8 @@
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pravaha.domain.storage.provider.base_storage_provider import BaseStorageProvider
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
+from pravaha.domain.storage.provider.base_storage_provider import BaseStorageProvider
 
 
 class KnowledgeStorageProvider(BaseStorageProvider):
@@ -19,11 +18,14 @@ class KnowledgeStorageProvider(BaseStorageProvider):
         super().__init__(storage_manager, category="knowledge")
 
     async def browse(
-        self, feature: Optional[str] = None, product: Optional[str] = None, **kwargs
+        self, path: Optional[str] = None, **kwargs
     ) -> Dict[str, List[Dict[str, Any]]]:
         """
         Browse knowledge storage with simple file/folder listing.
         
+        Args:
+            path: Optional folder path to browse (relative to knowledge root)
+            
         Returns:
             Dict with 'items' key containing list of files/folders
         """
@@ -32,7 +34,16 @@ class KnowledgeStorageProvider(BaseStorageProvider):
         if not base_path.exists():
             return {"items": []}
 
-        items = self._list_directory(base_path, base_path)
+        # If path is specified, browse that specific folder
+        if path:
+            target_path = base_path / path
+            if not target_path.exists() or not target_path.is_dir():
+                return {"items": []}
+            items = self._list_directory(target_path, base_path)
+        else:
+            # Browse root
+            items = self._list_directory(base_path, base_path)
+            
         return {"items": items}
 
     def _list_directory(
@@ -46,7 +57,7 @@ class KnowledgeStorageProvider(BaseStorageProvider):
             base_path: Base path for calculating relative paths
             
         Returns:
-            List of file/folder metadata
+            List of file/folder metadata with relative paths
         """
         items = []
 
@@ -60,8 +71,7 @@ class KnowledgeStorageProvider(BaseStorageProvider):
                 item = {
                     "name": entry.name,
                     "type": "folder" if entry.is_dir() else "file",
-                    "path": str(relative_path).replace("\\", "/"),  # Normalize path separators
-                    "absolute_path": str(entry),
+                    "path": str(relative_path).replace("\\", "/"),  # Relative path, normalized
                 }
 
                 if entry.is_dir():
