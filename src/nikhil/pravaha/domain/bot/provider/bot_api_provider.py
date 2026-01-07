@@ -44,9 +44,9 @@ class BotAPIProvider:
     async def run_application_stream(self, req: ApplicationRequest):
         try:
             if req.inputs:
-                stream = self.bot_manager.stream_run(req.task_name, inputs=req.inputs, llm_config=req.llm_config)
+                stream = self.bot_manager.stream_run(req.task_name, inputs=req.inputs, llm_config=req.llm_config_override)
             else:
-                stream = self.bot_manager.stream_run(req.task_name, llm_config=req.llm_config)
+                stream = self.bot_manager.stream_run(req.task_name, llm_config=req.llm_config_override)
 
             return EventSourceResponse(
                 self._event_generator(stream),
@@ -57,7 +57,10 @@ class BotAPIProvider:
                 }
             )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            import traceback
+            error_details = f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}"
+            print(f"[ERROR] Stream endpoint error: {error_details}")  # Log to console for debugging
+            raise HTTPException(status_code=500, detail=error_details)
 
     async def _event_generator(self, stream):
         # 1. Handle Async Iterables
