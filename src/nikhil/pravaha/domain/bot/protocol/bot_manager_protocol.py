@@ -16,7 +16,7 @@ class BotManagerProtocol(Protocol[UT, AT]):
         """Synchronous execution of a utility task (typed by UT)."""
         ...
 
-    def stream_run(self, application_task: AT, inputs: Optional[List[Dict[str, Any]]] = None) -> Union[
+    def stream_run(self, application_task: AT, inputs: Optional[List[Dict[str, Any]]] = None, llm_config: Optional[Any] = None) -> Union[
         Iterable[str], AsyncIterable[str]]:
         """Streamable execution of an application task (typed by AT)."""
         ...

@@ -71,7 +71,7 @@ class SimpleBotManager:
             raise ValueError(f"Tool {utility_task} not found")
         return tool.run(inputs)
 
-    def stream_run(self, application_task: str, inputs=None):
+    def stream_run(self, application_task: str, inputs=None, llm_config=None):
         app = None
         if application_task in self.apps:
             app = self.apps[application_task]
