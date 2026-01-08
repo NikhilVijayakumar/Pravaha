@@ -20,9 +20,28 @@ class WorkflowService:
         self.engine = engine
 
     def create_workflow(self, workflow: Workflow) -> Workflow:
-        # Validate unique ID if new, or just save
+        # Auto-generate ID and timestamps
         if not workflow.id:
             workflow.id = str(uuid.uuid4())
+        if not workflow.created_at:
+            workflow.created_at = datetime.now().isoformat()
+        if not workflow.updated_at:
+            workflow.updated_at = workflow.created_at
+        
+        self.workflow_repo.save(workflow)
+        return workflow
+
+    def update_workflow(self, workflow: Workflow) -> Workflow:
+        if not workflow.id:
+            raise ValueError("Workflow ID is required for update")
+        
+        existing = self.workflow_repo.get(workflow.id)
+        if not existing:
+            raise ValueError(f"Workflow {workflow.id} not found")
+        
+        # Update timestamp
+        workflow.updated_at = datetime.now().isoformat()
+        
         self.workflow_repo.save(workflow)
         return workflow
 
@@ -88,3 +107,7 @@ class WorkflowService:
 
     def list_runs(self, workflow_id: str) -> List[WorkflowRun]:
         return self.run_repo.list_by_workflow(workflow_id)
+
+    def list_all_runs(self) -> List[WorkflowRun]:
+        """Return all runs across all workflows"""
+        return self.run_repo.list_all()

@@ -13,17 +13,24 @@ class WorkflowAPIProvider:
     def _setup_routes(self):
         # Workflow CRUD
         self.router.post("/workflow/create", response_model=Workflow)(self.create_workflow)
-        self.router.get("/workflow/list", response_model=List[Workflow])(self.list_workflows) # Added explicit list for consistency if desired
+        self.router.post("/workflow/update", response_model=Workflow)(self.update_workflow)
+        self.router.get("/workflow/list", response_model=List[Workflow])(self.list_workflows)
         self.router.get("/workflow/{workflow_id}", response_model=Workflow)(self.get_workflow)
         self.router.delete("/workflow/{workflow_id}")(self.delete_workflow)
 
         # Execution - Nested under /workflow/run naming convention
         self.router.post("/workflow/run", response_model=WorkflowRun)(self.trigger_run)
         self.router.get("/workflow/run/{run_id}", response_model=WorkflowRun)(self.get_run)
-        self.router.get("/workflow/run", response_model=List[WorkflowRun])(self.list_runs)
+        self.router.get("/workflow/runs", response_model=List[WorkflowRun])(self.list_runs)
 
     async def create_workflow(self, workflow: Workflow):
         return self.workflow_service.create_workflow(workflow)
+
+    async def update_workflow(self, workflow: Workflow):
+        try:
+            return self.workflow_service.update_workflow(workflow)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
 
     async def list_workflows(self):
         return self.workflow_service.list_workflows()
@@ -56,14 +63,6 @@ class WorkflowAPIProvider:
     async def list_runs(self, workflow_id: Optional[str] = None):
         if workflow_id:
             return self.workflow_service.list_runs(workflow_id)
-        # If no workflow_id provided, likely return all or error. 
-        # Protocol `list_by_workflow` implies filtering by workflow.
-        # Ideally we implement list_all in repo if needed.
-        # For now, let's return error if missing, or empty list.
-        # Update: Spec didn't strictly say list ALL runs globally, but it's useful.
-        # To be safe and compliant with existing repo protocol, we require workflow_id or we iterate all workflows?
-        # Let's check `RunRepositoryProtocol`: only `list_by_workflow` existed.
-        # So we mandate `workflow_id` in query for now.
-        if workflow_id is None:
-             raise HTTPException(status_code=400, detail="workflow_id query parameter is required")
-        return self.workflow_service.list_runs(workflow_id)
+        else:
+            # Return all runs across all workflows
+            return self.workflow_service.list_all_runs()

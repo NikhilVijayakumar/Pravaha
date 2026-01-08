@@ -65,3 +65,7 @@ class JsonRunRepository(RunRepositoryProtocol):
     def list_by_workflow(self, workflow_id: str) -> List[WorkflowRun]:
         runs = self._load()
         return [r for r in runs if r.workflow_id == workflow_id]
+
+    def list_all(self) -> List[WorkflowRun]:
+        """Return all runs across all workflows"""
+        return self._load()

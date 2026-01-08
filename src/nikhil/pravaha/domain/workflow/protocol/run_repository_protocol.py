@@ -14,3 +14,7 @@ class RunRepositoryProtocol(Protocol):
     
     def list_by_workflow(self, workflow_id: str) -> List[WorkflowRun]:
         ...
+
+    def list_all(self) -> List[WorkflowRun]:
+        """Return all runs across all workflows"""
+        ...
