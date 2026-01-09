@@ -33,6 +33,7 @@ class BotAPIProvider:
         # Schema Routes
         self.router.get("/protocol/schema/input/{task_name}")(self.get_input_schema)
         self.router.get("/protocol/schema/output/{task_name}")(self.get_output_schema)
+        self.router.get("/protocol/config/{task_name}")(self.get_config)
 
     async def run_utility(self, req: UtilityRequest):
         try:
@@ -104,6 +105,17 @@ class BotAPIProvider:
         model = self.bot_manager.get_output_model(task_enum)
         if model:
             return model.model_json_schema()
+        return {}
+    
+    async def get_config(self, task_name: str):
+        """Get YAML configuration for a task as JSON."""
+        task_enum = self._get_task_enum(task_name)
+        if not task_enum:
+             raise HTTPException(status_code=404, detail=f"Task {task_name} not found")
+        
+        config = self.bot_manager.get_config(task_enum)
+        if config:
+            return config
         return {}
 
     def _get_task_enum(self, task_name: str):

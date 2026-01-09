@@ -53,6 +53,23 @@ class WorkflowService:
 
     def delete_workflow(self, workflow_id: str) -> None:
         self.workflow_repo.delete(workflow_id)
+    
+    def rename_workflow(self, workflow_id: str, new_name: str) -> Workflow:
+        """Rename a workflow and return the updated workflow."""
+        if not workflow_id:
+            raise ValueError("Workflow ID is required")
+        if not new_name or not new_name.strip():
+            raise ValueError("New name cannot be empty")
+        
+        # This will raise ValueError if workflow not found
+        self.workflow_repo.rename(workflow_id, new_name.strip())
+        
+        # Return the updated workflow
+        workflow = self.workflow_repo.get(workflow_id)
+        if not workflow:
+            raise ValueError(f"Workflow {workflow_id} not found after rename")
+        
+        return workflow
 
     async def trigger_run(self, workflow_id: str) -> WorkflowRun:
         workflow = self.workflow_repo.get(workflow_id)

@@ -1,0 +1,17 @@
+crew_name: "Math Bot Crew"
+usecase: "Mathematical Expression Evaluation"
+module_name: "math_assistant"
+
+crews:
+  math_crew:
+    input:
+      - key_name: "expression"
+        source: "direct"
+        value: "2 + 2"
+    
+    steps:
+      - task_file: "data/crew/tasks/evaluate_task.yaml"
+        agent_file: "data/crew/agents/math_agent.yaml"
+
+pipeline:
+  - "math_crew"

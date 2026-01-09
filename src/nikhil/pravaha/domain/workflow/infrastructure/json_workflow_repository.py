@@ -55,3 +55,18 @@ class JsonWorkflowRepository(WorkflowRepositoryProtocol):
         workflows = self._load()
         workflows = [w for w in workflows if w.id != workflow_id]
         self._save_all(workflows)
+    
+    def rename(self, workflow_id: str, new_name: str) -> None:
+        """Rename a workflow by updating only its name and updated_at timestamp."""
+        from datetime import datetime
+        
+        workflows = self._load()
+        workflow = next((w for w in workflows if w.id == workflow_id), None)
+        
+        if not workflow:
+            raise ValueError(f"Workflow {workflow_id} not found")
+        
+        workflow.name = new_name
+        workflow.updated_at = datetime.now().isoformat()
+        
+        self._save_all(workflows)

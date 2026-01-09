@@ -152,3 +152,76 @@ async def test_workflow_execution_failure_and_resume(services):
     # "FAIL_TASK" (now succeeding) and "TaskB" should run
     assert "FAIL_TASK" in executor.executed_tasks
     assert "TaskB" in executor.executed_tasks
+
+def test_workflow_rename(services):
+    """Test renaming a workflow."""
+    service, _, _, _ = services
+    
+    # Create a workflow
+    wf = Workflow(
+        id="wf-1",
+        name="Original Name",
+        nodes=[WorkflowNode(id="node-1", task_type="APP", task_name="Task1")],
+        edges=[]
+    )
+    service.create_workflow(wf)
+    
+    # Rename it
+    renamed = service.rename_workflow("wf-1", "New Name")
+    
+    # Verify the returned workflow has the new name
+    assert renamed.name == "New Name"
+    assert renamed.id == "wf-1"
+    
+    # Verify fetching it also shows the new name
+    fetched = service.get_workflow("wf-1")
+    assert fetched.name == "New Name"
+    assert fetched.id == "wf-1"
+
+def test_workflow_rename_nonexistent(services):
+    """Test renaming a non-existent workflow raises error."""
+    service, _, _, _ = services
+    
+    with pytest.raises(ValueError, match="not found"):
+        service.rename_workflow("nonexistent-id", "New Name")
+
+def test_workflow_rename_empty_name(services):
+    """Test renaming with empty name raises error."""
+    service, _, _, _ = services
+    
+    # Create a workflow
+    wf = Workflow(
+        id="wf-1",
+        name="Original Name",
+        nodes=[],
+        edges=[]
+    )
+    service.create_workflow(wf)
+    
+    # Try to rename with empty name
+    with pytest.raises(ValueError, match="cannot be empty"):
+        service.rename_workflow("wf-1", "")
+    
+    # Try to rename with whitespace-only name
+    with pytest.raises(ValueError, match="cannot be empty"):
+        service.rename_workflow("wf-1", "   ")
+
+def test_workflow_rename_trims_whitespace(services):
+    """Test that rename trims leading/trailing whitespace."""
+    service, _, _, _ = services
+    
+    # Create a workflow
+    wf = Workflow(
+        id="wf-1",
+        name="Original Name",
+        nodes=[],
+        edges=[]
+    )
+    service.create_workflow(wf)
+    
+    # Rename with whitespace
+    renamed = service.rename_workflow("wf-1", "  Trimmed Name  ")
+    
+    # Verify the name is trimmed
+    assert renamed.name == "Trimmed Name"
+

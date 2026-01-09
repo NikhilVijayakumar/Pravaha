@@ -17,6 +17,22 @@ Pravaha is a lightweight FastAPI library that provides a protocol-based architec
 
 ---
 
+## 📚 Documentation
+
+**Using Pravaha in your application?** Check out our comprehensive client documentation:
+
+👉 **[Client Documentation Index](docs/INDEX.md)**
+
+### Quick Links
+- **[API Factory](docs/client/api-factory.md)** - **Easiest way to start!** (One-line setup)
+- **[Getting Started](docs/client/README.md)** - Installation and quick start guide
+- **[Bot Module](docs/client/bot-module.md)** - Task execution (sync & streaming)  
+- **[LLM Module](docs/client/llm-module.md)** - LLM configuration management  
+- **[Storage Module](docs/client/storage-module.md)** - File storage organization  
+- **[Workflow Module](docs/client/workflow-module.md)** - Multi-step workflow execution
+
+---
+
 ## Architecture Overview
 
 Pravaha follows Clean Architecture principles with clear separation of concerns:

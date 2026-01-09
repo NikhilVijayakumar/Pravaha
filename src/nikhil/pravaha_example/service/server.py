@@ -46,6 +46,12 @@ class SimpleBotManager:
             UtilsType.CALCULATOR: GenericOutput,
             ApplicationType.MATH_ASSISTANT: GenericOutput
         }
+        
+        # Config paths registry (maps task enum to YAML config file path)
+        self.config_paths = {
+            # Example: ApplicationType.MATH_ASSISTANT: "path/to/config.yaml"
+            # Add your task -> config path mappings here
+        }
 
     def run(self, utility_task: str, inputs=None):
         # Convert string to Enum if needed, or just look up by value if we change map
@@ -105,6 +111,39 @@ class SimpleBotManager:
             if k.value == task:
                 return v
          return None
+
+    def get_config(self, task) -> Optional[dict]:
+        """Get YAML configuration for a task as a dictionary."""
+        import yaml
+        from pathlib import Path
+        
+        # Find config path from registry
+        config_path = None
+        if task in self.config_paths:
+            config_path = self.config_paths[task]
+        else:
+            # Fallback for string lookup
+            for k, v in self.config_paths.items():
+                if k.value == task:
+                    config_path = v
+                    break
+        
+        if not config_path:
+            return None
+        
+        # Load and parse YAML file
+        path_obj = Path(config_path)
+        if not path_obj.exists():
+            print(f"Warning: Config file not found: {config_path}")
+            return None
+        
+        try:
+            with open(path_obj, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            return config
+        except yaml.YAMLError as e:
+            print(f"Error parsing YAML config {config_path}: {e}")
+            return None
 
 # Create App
 

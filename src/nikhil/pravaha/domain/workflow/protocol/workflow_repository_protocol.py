@@ -13,3 +13,6 @@ class WorkflowRepositoryProtocol(Protocol):
     
     def delete(self, workflow_id: str) -> None:
         ...
+    
+    def rename(self, workflow_id: str, new_name: str) -> None:
+        ...

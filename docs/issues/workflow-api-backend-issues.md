@@ -1,12 +1,89 @@
-# Workflow API Backend Issues
+# Workflow API Issues
 
 ## Summary
-The frontend is correctly calling workflow API endpoints at `http://127.0.0.1:8000/api/workflow/*`, but the backend is returning a **422 Unprocessable Entity** error for workflow creation requests. This indicates a data validation or schema mismatch between the frontend request payload and the backend's expected schema.
+This document tracks known issues and missing features in the Workflow API implementation.
 
-## Current Status
-- ✅ Frontend URLs are correctly formed with `/api` prefix
-- ✅ Backend endpoints are reachable (no 404 errors)
-- ❌ Backend returns 422 error - validation/schema issue
+## Status Overview
+- ✅ **RESOLVED**: Frontend correctly calls workflow API endpoints at `http://127.0.0.1:8000/api/workflow/*`
+- ✅ **RESOLVED**: Backend 422 validation errors fixed (schema now matches frontend payload)
+- ✅ **RESOLVED**: Workflow creation, listing, updating, and deletion working
+- ✅ **RESOLVED**: LLM configuration correctly passed during workflow execution via `llm_config_override`
+- ✅ **COMPLETE**: Rename functionality implemented in frontend using existing update endpoint
+
+**All Known Issues Resolved** - The workflow API is fully functional.
+
+---
+
+## Resolved Issues
+
+### ✅ Issue 1: 422 Validation Error on Workflow Creation (RESOLVED)
+**Status:** Fixed  
+**Resolution Date:** 2026-01-08
+
+The backend Pydantic models were updated to match the frontend schema. The `llm_config` and `environment_config` fields are now correctly accepted.
+
+### ✅ Issue 2: LLM Configuration Not Passed During Run (RESOLVED)
+**Status:** Fixed  
+**Resolution Date:** 2026-01-09
+
+The frontend now extracts `llm_config` from workflow nodes and passes it as `llm_config_override` in the run request payload.
+
+---
+
+## Design Clarifications
+
+### LLM Configuration in Workflows - Working as Designed ✅
+**Status:** ✅ Implemented Correctly  
+**Clarified:** 2026-01-09
+
+**How It Works:**
+1. **LLM Nodes** - Store LLM configuration (model, parameters, etc.)
+2. **Application Nodes** - Have input parameters and can use LLM override
+3. **Workflow Execution** - UI extracts LLM config from LLM nodes and passes as `llm_config_override` to application API calls
+4. **Backend** - Receives and applies the override configuration
+
+**Implementation:**
+- Frontend: Extracts `model_config` and `llm_parameters` from LLM node
+- API Call: Passes as `llm_config_override` in request body
+- Backend: Uses this config for LLM operations in the workflow
+
+**No Backend Changes Needed** - The current implementation follows the intended design pattern.
+
+---
+
+### Workflow Rename Feature ✅
+**Status:** ✅ Complete (Backend + Frontend)  
+**Implemented:** 2026-01-09
+
+A dedicated `/api/workflow/rename` endpoint has been implemented to provide semantic clarity and optimized performance for workflow renaming operations.
+
+**Endpoint:** `POST /api/workflow/rename`
+
+**Request Body:**
+```json
+{
+  "id": "workflow-uuid",
+  "new_name": "New Workflow Name"
+}
+```
+
+**Features:**
+- Efficient name-only update (no need to send entire workflow object)
+- Automatic `updated_at` timestamp update
+- Input validation (empty name, whitespace trimming)
+- Error handling for non-existent workflows
+
+**Test Command (PowerShell):**
+```powershell
+$renameBody = @"
+{
+  "id": "your-workflow-id",
+  "new_name": "Renamed Workflow"
+}
+"@
+
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/workflow/rename" -Method POST -ContentType "application/json" -Body $renameBody
+```
 
 ---
 
@@ -15,7 +92,7 @@ The frontend is correctly calling workflow API endpoints at `http://127.0.0.1:80
 ### 1. Create Workflow
 **Endpoint:** `POST /api/workflow/create`
 
-**Current Issue:** Returns 422 (Unprocessable Entity)
+**Status:** ✅ Working
 
 **Test Command (bash):**
 ```bash

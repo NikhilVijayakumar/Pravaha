@@ -1,8 +1,13 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Optional
+from pydantic import BaseModel
 from ..service.workflow_service import WorkflowService
 from ..entity.workflow import Workflow
 from ..entity.workflow_run import WorkflowRun
+
+class WorkflowRenameRequest(BaseModel):
+    id: str
+    new_name: str
 
 class WorkflowAPIProvider:
     def __init__(self, workflow_service: WorkflowService):
@@ -14,6 +19,7 @@ class WorkflowAPIProvider:
         # Workflow CRUD
         self.router.post("/workflow/create", response_model=Workflow)(self.create_workflow)
         self.router.post("/workflow/update", response_model=Workflow)(self.update_workflow)
+        self.router.post("/workflow/rename", response_model=Workflow)(self.rename_workflow)
         self.router.get("/workflow/list", response_model=List[Workflow])(self.list_workflows)
         self.router.get("/workflow/{workflow_id}", response_model=Workflow)(self.get_workflow)
         self.router.delete("/workflow/{workflow_id}")(self.delete_workflow)
@@ -44,6 +50,12 @@ class WorkflowAPIProvider:
     async def delete_workflow(self, workflow_id: str):
         self.workflow_service.delete_workflow(workflow_id)
         return {"status": "deleted"}
+    
+    async def rename_workflow(self, request: WorkflowRenameRequest):
+        try:
+            return self.workflow_service.rename_workflow(request.id, request.new_name)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
 
     async def trigger_run(self, workflow_id: str, background_tasks: BackgroundTasks):
         try:
