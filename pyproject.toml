@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Pravaha"
-version = "1.1.12"
+version = "1.1.13"
 description = "FastAPI protocol library for LLM/agent applications with streaming support"
 readme = "README.md"
 requires-python = ">=3.12"
 
 dependencies = [
-    "PyYAML==6.0.2",
+    "PyYAML ==6.0.3",
     "fastapi==0.121.3",
     "sse-starlette==3.0.3",
 ]
