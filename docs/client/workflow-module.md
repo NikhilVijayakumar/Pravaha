@@ -2,16 +2,56 @@
 
 > **💡 Quick Start:** Use **[API Factory](api-factory.md)** to auto-configure workflows! This guide shows workflow design details.
 
+> **🔥 NEW**: Client-driven workflow execution! The client (Sangama UI) now executes nodes and polls for status.
+
 The Workflow module enables building and executing complex multi-step workflows with visual design support.
 
 ## Overview
 
 Features:
-- **Visual Workflow Design**: Node-based workflow editor
-- **Multiple Node Types**: Application, Utility, LLM, Environment
+- **Visual Workflow Design**: Node-based workflow editor (Sangama UI)
+- **Multiple Node Types**: Application, Utility, LLM, Environment, Note, Group
+- **Client-Driven Execution**: Frontend executes nodes, backend manages state
 - **Execution Management**: Track workflow runs and status
-- **Restartability**: Resume from failed nodes
+- **Retry Logic**: Automatic retry (max 3 attempts)
 - **Persistence**: JSON-based workflow storage
+
+## Execution Model (⚡ NEW)
+
+### How It Works
+
+**Client-Driven Execution**: The backend manages state orchestration while the frontend executes nodes.
+
+```mermaid
+sequenceDiagram
+    participant UI as Sangama UI
+    participant Backend as Akashavani/Pravaha
+    participant App as Application API
+
+    UI->>Backend: POST /execution/run {workflow_id}
+    Backend-->>UI: {run_id, status: RUNNING}
+    
+    loop Poll Every 2s
+        UI->>Backend: GET /execution/run/{id}/status
+        Backend-->>UI: {current_node, status}
+        
+        alt Has Pending Node
+            UI->>Backend: POST /node/{id}/status {IN_PROGRESS}
+            UI->>App: Execute Application
+            App-->>UI: Result
+            UI->>Backend: POST /node/{id}/status {COMPLETED, output}
+        end
+    end
+    
+    Backend-->>UI: {status: COMPLETED}
+```
+
+### Why Client-Driven?
+
+1. **Reuse Existing Logic**: Sangama already has application execution with streaming
+2. **Single Source of Truth**: UI handles all data transformations
+3. **No Code Duplication**: Backend doesn't need to duplicate frontend logic
+4. **Simpler Backend**: Pravaha focuses on state management only
 
 ## Workflow Structure
 
@@ -24,7 +64,7 @@ Features:
   "nodes": [
     {
       "id": "node-1",
-      "task_type": "APP",
+      "node_type": "APP",  // NEW: enum instead of task_type string
       "task_name": "generate_content",
       "inputs": {
         "topic": {
@@ -34,29 +74,12 @@ Features:
         }
       },
       "position": {"x": 100, "y": 100}
-    },
-    {
-      "id": "node-2",
-      "task_type": "LLM",
-      "task_name": "llm_config",
-      "llm_config": {
-        "ui_mode": "creative",
-        "ui_model_id": "gpt-4",
-        "model_config": {
-          "model": "gpt-4",
-          "api_key": "sk-..."
-        },
-        "llm_parameters": {
-          "temperature": 0.7
-        }
-      },
-      "position": {"x": 300, "y": 100}
     }
   ],
   "edges": [
     {
       "id": "edge-1",
-      "source": "node-2",
+      "source": "node-llm",
       "target": "node-1"
     }
   ]
@@ -65,15 +88,24 @@ Features:
 
 ### Node Types
 
-1. **APP**: Application tasks (streaming LLM apps)
-2. **UTIL**: Utility tasks (calculators, validators)
-3. **LLM**: LLM configuration nodes
-4. **ENVIRONMENT**: Environment variable nodes
+| Type | Category | Executable? | Purpose |
+|------|----------|-------------|---------|
+| `APPLICATION` | Executable | ✅ | Full domain applications (streaming LLM apps) |
+| `UTILITY` | Executable | ✅ | Helper functions, data transforms |
+| `LLM` | Configuration | ❌ | Local LLM settings for specific nodes |
+| `GLOBAL_LLM` | Configuration | ❌ | Default LLM for entire workflow |
+| `ENVIRONMENT` | Configuration | ❌ | Environment variables |
+| `NOTE` | UI-only | ❌ | Documentation/comments |
+| `GROUP` | UI-only | ❌ | Visual grouping container |
+
+**Only APPLICATION and UTILITY nodes are executed by the client.**
 
 ## API Endpoints
 
-### POST `/api/workflow/create`
-Create a new workflow.
+### Workflow CRUD (Unchanged)
+
+<details>
+<summary><b>POST /api/workflow/create</b> - Create a new workflow</summary>
 
 **Request:**
 ```json
@@ -84,51 +116,29 @@ Create a new workflow.
 }
 ```
 
-**Response:**
-```json
-{
-  "id": "generated-uuid",
-  "name": "My Workflow",
-  "nodes": [...],
-  "edges": [...],
-  "created_at": "2026-01-09T...",
-  "updated_at": "2026-01-09T..."
-}
-```
+**Response:** Complete workflow object with generated ID
+</details>
 
-### GET `/api/workflow/list`
-List all workflows.
+<details>
+<summary><b>GET /api/workflow/list</b> - List all workflows</summary>
 
-**Response:**
-```json
-[
-  {
-    "id": "workflow-1",
-    "name": "Workflow 1",
-    "created_at": "...",
-    "updated_at": "..."
-  }
-]
-```
+Returns array of workflow objects.
+</details>
 
-### GET `/api/workflow/{workflow_id}`
-Get workflow by ID.
+<details>
+<summary><b>GET /api/workflow/{workflow_id}</b> - Get workflow by ID</summary>
 
-### POST `/api/workflow/update`
-Update existing workflow.
+Returns single workflow object.
+</details>
 
-**Request:**
-```json
-{
-  "id": "workflow-uuid",
-  "name": "Updated Name",
-  "nodes": [...],
-  "edges": [...]
-}
-```
+<details>
+<summary><b>POST /api/workflow/update</b> - Update existing workflow</summary>
 
-### POST `/api/workflow/rename`
-Rename a workflow.
+**Request:** Full workflow object with `id` field
+</details>
+
+<details>
+<summary><b>POST /api/workflow/rename</b> - Rename a workflow</summary>
 
 **Request:**
 ```json
@@ -137,62 +147,141 @@ Rename a workflow.
   "new_name": "New Workflow Name"
 }
 ```
+</details>
 
-**Response:** Updated workflow object
+<details>
+<summary><b>DELETE /api/workflow/{workflow_id}</b> - Delete a workflow</summary>
 
-### DELETE `/api/workflow/{workflow_id}`
-Delete a workflow.
+Returns `{"status": "deleted"}`
+</details>
 
-### POST `/api/workflow/run?workflow_id={id}`
-Execute a workflow.
+---
+
+### ⚡ NEW: Client-Driven Execution API
+
+#### 1. Start Execution
+
+```http
+POST /api/execution/run
+Content-Type: application/json
+
+{
+  "workflow_id": "uuid-1234"
+}
+```
 
 **Response:**
 ```json
 {
-  "id": "run-uuid",
-  "workflow_id": "workflow-uuid",
+  "workflow_run_id": "run-uuid-5678",
+  "status": "RUNNING"
+}
+```
+
+**What It Does**: Initializes run state and marks root nodes as `PENDING`.
+
+---
+
+#### 2. Poll Status
+
+```http
+GET /api/execution/run/{run_id}/status
+```
+
+**Response:**
+```json
+{
+  "run_id": "run-uuid-5678",
   "status": "RUNNING",
-  "started_at": "2026-01-09T..."
+  "current_node": {
+    "node_id": "node-A",
+    "node_type": "APP",
+    "task_name": "generate_content",
+    "status": "PENDING",
+    "retry_count": 0
+  },
+  "nodes_status": {
+    "node-A": "PENDING",
+    "node-B": "NEW",
+    "node-C": "NEW"
+  }
 }
 ```
 
-### GET `/api/workflow/run/{run_id}`
-Get workflow run status.
+**What It Does**: 
+- Returns next pending node for client to execute
+- Checks for stale nodes (orphaned for >5 minutes)
+- Returns `null` for `current_node` when workflow complete
+
+**Client Should Poll**: Every 2 seconds
+
+---
+
+#### 3. Update Node Status
+
+```http
+POST /api/execution/run/{run_id}/node/{node_id}/status
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS" | "COMPLETED" | "FAILED",
+  "output_data": {...},     // Optional, for COMPLETED
+  "error": "error message", // Optional, for FAILED
+  "retry_attempt": 1        // Optional, triggers retry
+}
+```
 
 **Response:**
 ```json
 {
-  "id": "run-uuid",
-  "workflow_id": "workflow-uuid",
-  "status": "COMPLETED",
-  "started_at": "...",
-  "completed_at": "...",
-  "node_states": {
-    "node-1": "COMPLETED",
-    "node-2": "COMPLETED"
-  }
+  "success": true,
+  "run_status": "RUNNING"
 }
 ```
 
-### GET `/api/workflow/runs?workflow_id={id}`
-List runs for a workflow.
+**What It Does**:
+- `IN_PROGRESS`: Marks node as executing (client should call before execution)
+- `COMPLETED`: Stores output, advances workflow to next node
+- `FAILED`: Marks failed, optionally retries (max 3 attempts)
+
+---
+
+#### 4. Get Node Output
+
+```http
+GET /api/execution/run/{run_id}/node/{node_id}/output
+```
 
 **Response:**
 ```json
-[
-  {
-    "id": "run-1",
-    "workflow_id": "workflow-1",
-    "status": "COMPLETED",
-    "started_at": "...",
-    "completed_at": "..."
-  }
-]
+{
+  "data": {...},
+  "timestamp": "2026-01-12T...",
+  "version": 1
+}
 ```
 
-## Setup
+**What It Does**: Retrieves output from a previously completed node (for data dependencies).
 
-### Register Workflow Provider
+---
+
+### Legacy Endpoints (For Compatibility)
+
+<details>
+<summary><b>GET /api/workflow/run/{run_id}</b> - Get run details</summary>
+
+Returns full `WorkflowRun` object with all fields.
+</details>
+
+<details>
+<summary><b>GET /api/workflow/runs?workflow_id={id}</b> - List runs</summary>
+
+Returns array of run objects for a workflow (or all runs if no workflow_id).
+</details>
+
+## Setup (For Akashavan Developers)
+
+### Using API Factory (Recommended)
 
 ```python
 from pravaha.domain.api.factory.api_factory import create_fastapi_app
@@ -201,157 +290,186 @@ app = create_fastapi_app(
     bot_manager=bot_manager,
     task_config=task_config,
     storage_manager=storage_manager,
-    workflow_data_dir="./data"  # Workflow storage directory
+    llm_config_path="config/llm_config.json"
 )
 ```
 
-## Workflow Execution
+✅ **Workflows automatically configured!** No additional setup needed.
 
-### How Workflows Run
-
-1. **Topological Sort**: Nodes executed in dependency order
-2. **LLM Config Injection**: LLM nodes configure connected APP nodes
-3. **State Tracking**: Each node's status tracked (PENDING, RUNNING, COMPLETED, FAILED)
-4. **Failure Handling**: Execution stops at first failure
-5. **Restartability**: Resume from last successful node
-
-### Example Flow
-
-```
-[LLM Config Node] ──→ [APP Node: Generate] ──→ [UTIL Node: Validate]
-                ↓
-[Environment Node]
-```
-
-**Execution:**
-1. LLM Config runs first (no dependencies)
-2. Environment runs (no dependencies)
-3. APP Node runs with LLM config from step 1
-4. UTIL Node runs with output from step 3
-
-## Integration Example
+### Manual Setup (Advanced)
 
 ```python
 from pravaha.domain.workflow.service.workflow_service import WorkflowService
 from pravaha.domain.workflow.infrastructure.json_workflow_repository import JsonWorkflowRepository
 from pravaha.domain.workflow.infrastructure.json_run_repository import JsonRunRepository
-from pravaha.domain.workflow.service.simple_workflow_engine import SimpleWorkflowEngine
+from pravaha.domain.workflow.service.simple_orchestration_engine import SimpleOrchestrationEngine
 
 # Setup repositories
 workflow_repo = JsonWorkflowRepository("data/workflows.json")
 run_repo = JsonRunRepository("data/runs.json")
 
-# Setup engine with your task executor
-from your_app import TaskExecutor
-executor = TaskExecutor(bot_manager)
-engine = SimpleWorkflowEngine(executor, run_repo)
+# Setup orchestration engine (state-only, no task executor!)
+orchestration_engine = SimpleOrchestrationEngine(run_repo)
 
 # Create service
-workflow_service = WorkflowService(workflow_repo, run_repo, engine)
-
-# Create workflow via API or directly
-from pravaha.domain.workflow.entity.workflow import Workflow, WorkflowNode, WorkflowEdge
-
-workflow = Workflow(
-    name="My Workflow",
-    nodes=[...],
-    edges=[...]
+workflow_service = WorkflowService(
+    workflow_repo, 
+    run_repo, 
+    orchestration_engine
 )
-
-created = workflow_service.create_workflow(workflow)
-
-# Execute
-run = await workflow_service.trigger_run(created.id)
-await workflow_service.execute_run(run.id)
-
-# Check status
-run_status = workflow_service.get_run(run.id)
-print(run_status.status)  # COMPLETED, FAILED, RUNNING
 ```
 
-## Input Sources
+## Workflow Execution Flow
 
-Workflow nodes support multiple input sources:
+### State Machine
 
-### Direct Input
-```json
-{
-  "key_name": "topic",
-  "source": "direct",
-  "value": "Quantum Physics"
-}
+```
+NEW → PENDING → IN_PROGRESS → COMPLETED
+                            ↓
+                         FAILED (retry → PENDING)
 ```
 
-### File Input (JSON)
-```json
-{
-  "key_name": "data",
-  "source": "file",
-  "path": "knowledge/input.json",
-  "format": "json"
-}
-```
+**States**:
+- `NEW`: Node waiting, dependencies not met
+- `PENDING`: Ready to execute, waiting for client pickup
+- `IN_PROGRESS`: Client currently executing
+- `COMPLETED`: Successfully finished
+- `FAILED`: Failed (after max retries)
 
-### File Input (Text)
-```json
-{
-  "key_name": "prompt",
-  "source": "file",
-  "path": "knowledge/prompt.txt",
-  "format": "text"
+### Example: 3-Node Linear Workflow
+
+**Workflow**: A → B → C
+
+**Execution Timeline**:
+
+1. **Start**: Client calls `POST /execution/run`
+   - Backend marks Node A as `PENDING`
+   - Nodes B, C marked as `NEW`
+
+2. **Poll**: Client calls `GET /execution/run/{id}/status`
+   - Response: `current_node = Node A`
+
+3. **Execute Node A**:
+   - Client: `POST /node/A/status {IN_PROGRESS}`
+   - Client: Execute application API
+   - Client: `POST /node/A/status {COMPLETED, output}`
+
+4. **Backend Advances**: Node A → `COMPLETED`, Node B → `PENDING`
+
+5. **Repeat for B and C**
+
+6. **Complete**: All nodes `COMPLETED`, run status → `COMPLETED`
+
+## Integration Example (Sangama UI)
+
+### Frontend Execution Loop
+
+```typescript
+// useWorkflowExecutionLoop.ts
+export const useWorkflowExecutionLoop = (runId: string) => {
+  const [status, setStatus] = useState<string>('RUNNING')
+  const { handleRun } = useApplicationViewModel() // Existing!
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      // Poll status
+      const res = await repo.getExecutionStatus(runId)
+      setStatus(res.status)
+      
+      if (res.current_node?.status === 'PENDING') {
+        await executeNode(res.current_node)
+      }
+      
+      if (res.status === 'COMPLETED' || res.status === 'FAILED') {
+        clearInterval(interval)
+      }
+    }, 2000) // Poll every 2s
+    
+    return () => clearInterval(interval)
+  }, [runId])
+
+  const executeNode = async (node: any) => {
+    try {
+      // Mark in progress
+      await repo.updateNodeStatus(runId, node.node_id, {
+        status: 'IN_PROGRESS'
+      })
+      
+      // Execute using existing ApplicationViewModel!
+      const result = await handleRun(node.inputs, node.llm_config)
+      
+      // Mark completed
+      await repo.updateNodeStatus(runId, node.node_id, {
+        status: 'COMPLETED',
+        output_data: result
+      })
+    } catch (error) {
+      // Mark failed with retry
+      await repo.updateNodeStatus(runId, node.node_id, {
+        status: 'FAILED',
+        error: error.message,
+        retry_attempt: 1 // Triggers retry
+      })
+    }
+  }
+  
+  return { status }
 }
 ```
 
 ## Best Practices
 
-1. **Name Workflows Clearly**: Use descriptive names
-2. **Use LLM Nodes**: Centralize LLM config in dedicated nodes
-3. **Environment Variables**: Use ENV nodes for API keys
-4. **Test Incrementally**: Test each node before building complex workflows
-5. **Handle Failures**: Implement error handling in task executors
-6. **Version Workflows**: Save different versions as you iterate
-7. **Monitor Runs**: Check run status and logs
+### For Akashavani (Backend)
 
-## UI Integration
+1. ✅ **Use API Factory**: Simplest setup
+2. ✅ **Update Pravaha**: `pip install -e .` after pulling changes
+3. ✅ **Monitor Runs**: Check `data/runs.json` for debugging
+4. ✅ **Error Handling**: Stale nodes auto-fail after 5 minutes
 
-Pravaha provides a React-based workflow designer (not included in core library). To integrate:
+### For Sangama (Frontend)
 
-1. Set up workflow API endpoints (automatic with `create_fastapi_app`)
-2. Use the separate `sangama` UI package
-3. Or build your own using the workflow API endpoints
+1. ✅ **Reuse Existing Logic**: `useApplicationViewModel` already executes apps
+2. ✅ **Poll Every 2s**: Don't poll too frequently
+3. ✅ **Handle Retries**: Set `retry_attempt` on failures
+4. ✅ **Show Progress**: Display node states to user
+5. ✅ **Error Feedback**: Show clear error messages from backend
 
-## Example: Complete Workflow
+## Troubleshooting
 
-```json
-{
-  "name": "Content Generation Pipeline",
-  "nodes": [
-    {
-      "id": "llm-1",
-      "task_type": "LLM",
-      "task_name": "creative_llm",
-      "llm_config": {
-        "model_config": {"model": "gpt-4"},
-        "llm_parameters": {"temperature": 0.8}
-      }
-    },
-    {
-      "id": "app-1",
-      "task_type": "APP",
-      "task_name": "generate_content",
-      "inputs": {
-        "topic": {"source": "direct", "value": "AI"}
-      }
-    },
-    {
-      "id": "util-1",
-      "task_type": "UTIL",
-      "task_name": "validate_output"
-    }
-  ],
-  "edges": [
-    {"source": "llm-1", "target": "app-1"},
-    {"source": "app-1", "target": "util-1"}
-  ]
-}
-```
+### Run Stuck in "RUNNING"
+
+**Cause**: Client crashed or network issue  
+**Solution**: Backend auto-fails nodes IN_PROGRESS >5 minutes
+
+### Node Status "FAILED"
+
+**Causes**:
+- Application execution error (check client logs)
+- Network timeout
+- Stale node detection
+
+**Solution**: Check `error_message` in run object
+
+### No "current_node" Returned
+
+**Causes**:
+- All nodes completed (run status = COMPLETED)
+- Run failed (run status = FAILED)
+- Workflow has no executable nodes
+
+**Solution**: Check `run.status` field
+
+## Migration from Old Server-Side Execution
+
+If you had workflows using old `/api/workflow/run` endpoint:
+
+1. **Old Behavior**: Server executed all nodes automatically
+2. **New Behavior**: Client polls and executes nodes
+
+**No Breaking Changes**: Old endpoint still works but redirects to new execution model. However, you need to implement the polling loop in the frontend.
+
+## See Also
+
+- [API Factory Documentation](api-factory.md) - Auto-configuration
+- [Bot Module Documentation](bot-module.md) - Application execution
+- [Storage Module Documentation](storage-module.md) - File inputs

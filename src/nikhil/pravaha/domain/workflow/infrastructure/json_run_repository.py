@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from ..protocol.run_repository_protocol import RunRepositoryProtocol
 from ..entity.workflow_run import WorkflowRun
 from ..entity.run_state import RunState
@@ -66,6 +66,22 @@ class JsonRunRepository(RunRepositoryProtocol):
         runs = self._load()
         return [r for r in runs if r.workflow_id == workflow_id]
 
+
     def list_all(self) -> List[WorkflowRun]:
         """Return all runs across all workflows"""
         return self._load()
+    
+    def save_node_output(self, run_id: str, node_id: str, output: Dict[str, Any]) -> None:
+        """Save output data for a specific node in a run."""
+        run = self.get(run_id)
+        if run:
+            run.node_outputs[node_id] = output
+            self.save(run)
+    
+    def get_node_output(self, run_id: str, node_id: str) -> Optional[Dict[str, Any]]:
+        """Get output data for a specific node in a run."""
+        run = self.get(run_id)
+        if run:
+            return run.node_outputs.get(node_id)
+        return None
+

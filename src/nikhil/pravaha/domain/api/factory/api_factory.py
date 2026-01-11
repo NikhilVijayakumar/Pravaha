@@ -8,8 +8,7 @@ from pravaha.domain.storage.provider.storage_api_provider import StorageAPIProvi
 # Workflow Imports
 from pravaha.domain.workflow.infrastructure.json_workflow_repository import JsonWorkflowRepository
 from pravaha.domain.workflow.infrastructure.json_run_repository import JsonRunRepository
-from pravaha.domain.workflow.infrastructure.pravaha_task_executor import PravahaTaskExecutor
-from pravaha.domain.workflow.service.simple_workflow_engine import SimpleWorkflowEngine
+from pravaha.domain.workflow.service.simple_orchestration_engine import SimpleOrchestrationEngine
 from pravaha.domain.workflow.service.workflow_service import WorkflowService
 from pravaha.domain.workflow.provider.workflow_api_provider import WorkflowAPIProvider
 
@@ -53,12 +52,10 @@ def create_fastapi_app(bot_manager, task_config, storage_manager, prefix="api", 
     workflow_repo = JsonWorkflowRepository(os.path.join(data_dir, "workflows.json"))
     run_repo = JsonRunRepository(os.path.join(data_dir, "runs.json"))
     
-    # Task Executor (Bridge to BotManager)
-    task_executor = PravahaTaskExecutor(bot_manager, task_config)
-    
-    # Engine & Service
-    engine = SimpleWorkflowEngine(task_executor, run_repo)
-    workflow_service = WorkflowService(workflow_repo, run_repo, engine)
+    # Orchestration Engine (state management only, no execution)
+    # Client-driven execution means backend doesn't need task executor
+    orchestration_engine = SimpleOrchestrationEngine(run_repo)
+    workflow_service = WorkflowService(workflow_repo, run_repo, orchestration_engine)
     
     # Provider
     workflow_provider = WorkflowAPIProvider(workflow_service)

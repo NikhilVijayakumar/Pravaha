@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from ..service.workflow_service import WorkflowService
 from ..entity.workflow import Workflow
@@ -8,6 +8,12 @@ from ..entity.workflow_run import WorkflowRun
 class WorkflowRenameRequest(BaseModel):
     id: str
     new_name: str
+
+class NodeStatusUpdateRequest(BaseModel):
+    status: str  # "IN_PROGRESS" | "COMPLETED" | "FAILED"
+    output_data: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    retry_attempt: Optional[int] = None
 
 class WorkflowAPIProvider:
     def __init__(self, workflow_service: WorkflowService):
@@ -24,8 +30,13 @@ class WorkflowAPIProvider:
         self.router.get("/workflow/{workflow_id}", response_model=Workflow)(self.get_workflow)
         self.router.delete("/workflow/{workflow_id}")(self.delete_workflow)
 
-        # Execution - Nested under /workflow/run naming convention
-        self.router.post("/workflow/run", response_model=WorkflowRun)(self.trigger_run)
+        # Client-Driven Execution API
+        self.router.post("/execution/run")(self.start_execution)
+        self.router.get("/execution/run/{run_id}/status")(self.get_execution_status)
+        self.router.post("/execution/run/{run_id}/node/{node_id}/status")(self.update_node_status)
+        self.router.get("/execution/run/{run_id}/node/{node_id}/output")(self.get_node_output)
+        
+        # Original endpoints (for backwards compatibility during transition)
         self.router.get("/workflow/run/{run_id}", response_model=WorkflowRun)(self.get_run)
         self.router.get("/workflow/runs", response_model=List[WorkflowRun])(self.list_runs)
 
@@ -57,14 +68,52 @@ class WorkflowAPIProvider:
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
-    async def trigger_run(self, workflow_id: str, background_tasks: BackgroundTasks):
+    async def trigger_run(self, workflow_id: str):
+        """Legacy endpoint - redirects to start_execution"""
+        return await self.start_execution({"workflow_id": workflow_id})
+    
+    async def start_execution(self, payload: Dict[str, str]):
+        """Initialize a new workflow run for client-driven execution"""
+        workflow_id = payload.get("workflow_id")
+        if not workflow_id:
+            raise HTTPException(status_code=400, detail="workflow_id required")
+        
         try:
-            run = await self.workflow_service.trigger_run(workflow_id)
-            # Schedule execution in background
-            background_tasks.add_task(self.workflow_service.execute_run, run.id)
-            return run
+            run = self.workflow_service.trigger_run(workflow_id)
+            return {
+                "workflow_run_id": run.id,
+                "status": run.status.value
+            }
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
+    
+    async def get_execution_status(self, run_id: str):
+        """Get current run status with next pending node for client polling"""
+        try:
+            return self.workflow_service.get_run_status(run_id)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+    
+    async def update_node_status(self, run_id: str, node_id: str, request: NodeStatusUpdateRequest):
+        """Update node status based on client execution result"""
+        try:
+            return self.workflow_service.update_node_status(
+                run_id=run_id,
+                node_id=node_id,
+                status=request.status,
+                output_data=request.output_data,
+                error=request.error,
+                retry_attempt=request.retry_attempt
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    async def get_node_output(self, run_id: str, node_id: str):
+        """Get output data from a completed node"""
+        output = self.workflow_service.get_node_output(run_id, node_id)
+        if output is None:
+            raise HTTPException(status_code=404, detail="Node output not found")
+        return output
 
     async def get_run(self, run_id: str):
         run = self.workflow_service.get_run(run_id)

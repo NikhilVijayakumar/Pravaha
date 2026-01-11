@@ -1,9 +1,9 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from ..protocol.workflow_repository_protocol import WorkflowRepositoryProtocol
 from ..protocol.run_repository_protocol import RunRepositoryProtocol
-from ..protocol.workflow_engine_protocol import WorkflowEngineProtocol
+from ..protocol.orchestration_engine_protocol import OrchestrationEngineProtocol
 from ..entity.workflow import Workflow
 from ..entity.workflow_run import WorkflowRun
 from ..entity.run_state import RunState
@@ -13,11 +13,11 @@ class WorkflowService:
         self,
         workflow_repo: WorkflowRepositoryProtocol,
         run_repo: RunRepositoryProtocol,
-        engine: WorkflowEngineProtocol
+        orchestration_engine: OrchestrationEngineProtocol
     ):
         self.workflow_repo = workflow_repo
         self.run_repo = run_repo
-        self.engine = engine
+        self.orchestration_engine = orchestration_engine
 
     def create_workflow(self, workflow: Workflow) -> Workflow:
         # Auto-generate ID and timestamps
@@ -71,7 +71,11 @@ class WorkflowService:
         
         return workflow
 
-    async def trigger_run(self, workflow_id: str) -> WorkflowRun:
+    def trigger_run(self, workflow_id: str) -> WorkflowRun:
+        """
+        Initialize a new workflow run for client-driven execution.
+        Creates run and initializes orchestration state.
+        """
         workflow = self.workflow_repo.get(workflow_id)
         if not workflow:
             raise ValueError(f"Workflow {workflow_id} not found")
@@ -83,41 +87,94 @@ class WorkflowService:
             status=RunState.PENDING,
             created_at=datetime.now()
         )
-        self.run_repo.save(run)
         
-        # We start the engine execution here. 
-        # Note: The caller (API) should likely schedule this as a background task
-        # if they want to return immediately. However, since the Service method 
-        # usually encapsulates usage, we will return the Run object immediately
-        # and expect the Controller/Provider to handle the async scheduling of `engine.execute_run`.
-        # But `engine.execute_run` requires the run object.
-        
-        # Actually, for clean separation, the Service could return the (run, coroutine) 
-        # or just return run and have a specific method `execute_run_async` that does both.
-        # Let's keep `trigger_run` as "Create and Return Run", and let API schedule execution.
-        
-        # OR better: The service method triggers it itself if we weren't in an async event loop web context restriction.
-        # But we are. 
+        # Initialize orchestration state (marks root nodes PENDING)
+        run = self.orchestration_engine.initialize_run(workflow, run)
         
         return run
-
-    async def execute_run(self, run_id: str):
+    
+    def get_run_status(self, run_id: str) -> Dict[str, Any]:
         """
-        Actual execution logic, to be called via BackgroundTasks
+        Get current run status with next pending node for client polling.
+        Also checks for stale nodes stuck in IN_PROGRESS.
         """
         run = self.run_repo.get(run_id)
         if not run:
-            return
+            raise ValueError(f"Run {run_id} not found")
         
         workflow = self.workflow_repo.get(run.workflow_id)
         if not workflow:
-             # Fail run
-             run.status = RunState.FAILED
-             run.error_message = "Workflow deleted"
-             self.run_repo.save(run)
-             return
-
-        await self.engine.execute_run(workflow, run)
+            raise ValueError(f"Workflow {run.workflow_id} not found")
+        
+        # Check for stale nodes (orphaned)
+        run = self.orchestration_engine.check_stale_nodes(run)
+        
+        # Get next pending node
+        current_node = self.orchestration_engine.get_next_pending_node(workflow, run)
+        
+        response = {
+            "run_id": run.id,
+            "status": run.status.value,
+            "current_node": None,
+            "nodes_status": {node_id: state.value for node_id, state in run.node_states.items()}
+        }
+        
+        if current_node:
+            response["current_node"] = {
+                "node_id": current_node.id,
+                "node_type": current_node.node_type.value,
+                "task_name": current_node.task_name,
+                "status": run.node_states[current_node.id].value,
+                "retry_count": run.retry_counts.get(current_node.id, 0)
+            }
+        
+        return response
+    
+    def update_node_status(
+        self, 
+        run_id: str, 
+        node_id: str, 
+        status: str,
+        output_data: Optional[Dict[str, Any]] = None,
+        error: Optional[str] = None,
+        retry_attempt: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Update node status based on client execution result.
+        """
+        run = self.run_repo.get(run_id)
+        if not run:
+            raise ValueError(f"Run {run_id} not found")
+        
+        workflow = self.workflow_repo.get(run.workflow_id)
+        if not workflow:
+            raise ValueError(f"Workflow {run.workflow_id} not found")
+        
+        status_enum = RunState(status)
+        
+        if status_enum == RunState.IN_PROGRESS:
+            run = self.orchestration_engine.mark_node_in_progress(run, node_id)
+        
+        elif status_enum == RunState.COMPLETED:
+            run = self.orchestration_engine.complete_node(run, workflow, node_id, output_data)
+        
+        elif status_enum == RunState.FAILED:
+            retry = retry_attempt is not None
+            run = self.orchestration_engine.fail_node(run, node_id, error or "Unknown error", retry)
+        
+        else:
+            raise ValueError(f"Invalid status for update: {status}")
+        
+        return {
+            "success": True,
+            "run_status": run.status.value
+        }
+    
+    def get_node_output(self, run_id: str, node_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get output data from a completed node.
+        """
+        return self.run_repo.get_node_output(run_id, node_id)
 
     def get_run(self, run_id: str) -> Optional[WorkflowRun]:
         return self.run_repo.get(run_id)
