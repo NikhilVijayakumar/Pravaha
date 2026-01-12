@@ -1,67 +1,83 @@
 import json
 import os
 from typing import List, Optional
+from pathlib import Path
 from ..protocol.workflow_repository_protocol import WorkflowRepositoryProtocol
 from ..entity.workflow import Workflow
+from ..manager.local_workflow_manager import LocalWorkflowManager
 
 class JsonWorkflowRepository(WorkflowRepositoryProtocol):
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self._ensure_file()
+    def __init__(self, workflow_manager: LocalWorkflowManager):
+        self.workflow_manager = workflow_manager
+        self._ensure_directory()
 
-    def _ensure_file(self):
-        if not os.path.exists(self.file_path):
-            dirname = os.path.dirname(self.file_path)
-            if dirname:
-                os.makedirs(dirname, exist_ok=True)
-            with open(self.file_path, "w") as f:
-                json.dump([], f)
+    def _ensure_directory(self):
+        """Ensure the workflow details directory exists."""
+        details_path = self.workflow_manager.get_path("details")
+        details_path.mkdir(parents=True, exist_ok=True)
 
-    def _load(self) -> List[Workflow]:
+    def _get_workflow_file_path(self, workflow_id: str) -> Path:
+        """Get the file path for a specific workflow."""
+        details_path = self.workflow_manager.get_path("details")
+        return details_path / f"{workflow_id}.json"
+
+    def _load_workflow(self, workflow_id: str) -> Optional[Workflow]:
+        """Load a single workflow from its JSON file."""
+        file_path = self._get_workflow_file_path(workflow_id)
+        if not file_path.exists():
+            return None
+        
         try:
-            with open(self.file_path, "r") as f:
+            with open(file_path, "r") as f:
                 data = json.load(f)
-                return [Workflow(**item) for item in data]
+                return Workflow(**data)
         except (json.JSONDecodeError, FileNotFoundError):
-            return []
+            return None
 
-    def _save_all(self, workflows: List[Workflow]):
-        data = [w.model_dump(mode='json') for w in workflows]
+    def _save_workflow(self, workflow: Workflow):
+        """Save a single workflow to its JSON file."""
+        file_path = self._get_workflow_file_path(workflow.id)
+        data = workflow.model_dump(mode='json')
+        
         # Atomic write
-        temp_path = f"{self.file_path}.tmp"
+        temp_path = file_path.with_suffix('.tmp')
         with open(temp_path, "w") as f:
             json.dump(data, f, indent=2)
-        os.replace(temp_path, self.file_path)
+        os.replace(temp_path, file_path)
 
     def save(self, workflow: Workflow) -> None:
-        workflows = self._load()
-        existing_idx = next((i for i, w in enumerate(workflows) if w.id == workflow.id), -1)
-        
-        if existing_idx >= 0:
-            workflows[existing_idx] = workflow
-        else:
-            workflows.append(workflow)
-        
-        self._save_all(workflows)
+        self._save_workflow(workflow)
 
     def get(self, workflow_id: str) -> Optional[Workflow]:
-        workflows = self._load()
-        return next((w for w in workflows if w.id == workflow_id), None)
+        return self._load_workflow(workflow_id)
 
     def list_all(self) -> List[Workflow]:
-        return self._load()
+        """List all workflows by reading all JSON files in the details directory."""
+        details_path = self.workflow_manager.get_path("details")
+        workflows = []
+        
+        for file_path in details_path.glob("*.json"):
+            try:
+                with open(file_path, "r") as f:
+                    data = json.load(f)
+                    workflows.append(Workflow(**data))
+            except (json.JSONDecodeError, ValueError):
+                # Skip invalid files
+                continue
+        
+        return workflows
 
     def delete(self, workflow_id: str) -> None:
-        workflows = self._load()
-        workflows = [w for w in workflows if w.id != workflow_id]
-        self._save_all(workflows)
+        """Delete a workflow by removing its JSON file."""
+        file_path = self._get_workflow_file_path(workflow_id)
+        if file_path.exists():
+            file_path.unlink()
     
     def rename(self, workflow_id: str, new_name: str) -> None:
         """Rename a workflow by updating only its name and updated_at timestamp."""
         from datetime import datetime
         
-        workflows = self._load()
-        workflow = next((w for w in workflows if w.id == workflow_id), None)
+        workflow = self._load_workflow(workflow_id)
         
         if not workflow:
             raise ValueError(f"Workflow {workflow_id} not found")
@@ -69,4 +85,5 @@ class JsonWorkflowRepository(WorkflowRepositoryProtocol):
         workflow.name = new_name
         workflow.updated_at = datetime.now().isoformat()
         
-        self._save_all(workflows)
+        self._save_workflow(workflow)
+

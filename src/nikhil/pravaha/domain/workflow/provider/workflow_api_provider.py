@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from ..service.workflow_service import WorkflowService
 from ..entity.workflow import Workflow
 from ..entity.workflow_run import WorkflowRun
+from ..model.workflow_config_request import WorkflowConfigRequest
+from ..manager.local_workflow_manager import LocalWorkflowManager
 
 class WorkflowRenameRequest(BaseModel):
     id: str
@@ -16,12 +18,18 @@ class NodeStatusUpdateRequest(BaseModel):
     retry_attempt: Optional[int] = None
 
 class WorkflowAPIProvider:
-    def __init__(self, workflow_service: WorkflowService):
+    def __init__(self, workflow_service: WorkflowService, workflow_manager: LocalWorkflowManager):
         self.workflow_service = workflow_service
+        self.workflow_manager = workflow_manager
         self.router = APIRouter()
         self._setup_routes()
 
     def _setup_routes(self):
+        # Configuration routes
+        self.router.post("/workflow/config")(self.set_workflow_config)
+        self.router.get("/workflow/config")(self.get_workflow_config)
+        self.router.get("/workflow/schema/config")(self.get_config_schema)
+
         # Workflow CRUD
         self.router.post("/workflow/create", response_model=Workflow)(self.create_workflow)
         self.router.post("/workflow/update", response_model=Workflow)(self.update_workflow)
@@ -127,3 +135,22 @@ class WorkflowAPIProvider:
         else:
             # Return all runs across all workflows
             return self.workflow_service.list_all_runs()
+    
+    # ---------------------------------------------------------------------
+    # CONFIGURATION
+    # ---------------------------------------------------------------------
+
+    async def set_workflow_config(self, req: WorkflowConfigRequest):
+        """Update workflow configuration."""
+        self.workflow_manager.update_config(
+            req.details_path, req.run_path
+        )
+        return {"status": "Configured successfully"}
+
+    async def get_workflow_config(self):
+        """Get current workflow configuration."""
+        return self.workflow_manager.get_config()
+
+    async def get_config_schema(self):
+        """Get workflow configuration JSON schema."""
+        return WorkflowConfigRequest.model_json_schema()

@@ -10,6 +10,7 @@ from pravaha.domain.workflow.entity.workflow_node import WorkflowNode
 from pravaha.domain.workflow.entity.workflow_edge import WorkflowEdge
 from pravaha.domain.workflow.entity.workflow_run import WorkflowRun
 from pravaha.domain.workflow.entity.run_state import RunState
+from pravaha.domain.workflow.manager.local_workflow_manager import LocalWorkflowManager
 from pravaha.domain.workflow.infrastructure.json_workflow_repository import JsonWorkflowRepository
 from pravaha.domain.workflow.infrastructure.json_run_repository import JsonRunRepository
 from pravaha.domain.workflow.service.simple_workflow_engine import SimpleWorkflowEngine
@@ -31,16 +32,24 @@ class MockTaskExecutor(TaskExecutorProtocol):
 # --- Tests ---
 
 @pytest.fixture
-def temp_dirs(tmp_path):
-    wf_file = tmp_path / "workflows.json"
-    run_file = tmp_path / "runs.json"
-    return str(wf_file), str(run_file)
+def temp_dirs(tmp_path, monkeypatch):
+    """Setup temporary directory and workflow manager with custom paths."""
+    monkeypatch.chdir(tmp_path)
+    
+    # Create custom workflow config for testing
+    workflow_defaults = {
+        "details": "test_workflows",
+        "run": "test_runs"
+    }
+    
+    workflow_manager = LocalWorkflowManager(defaults=workflow_defaults)
+    return workflow_manager
 
 @pytest.fixture
 def services(temp_dirs):
-    wf_path, run_path = temp_dirs
-    wf_repo = JsonWorkflowRepository(wf_path)
-    run_repo = JsonRunRepository(run_path)
+    workflow_manager = temp_dirs
+    wf_repo = JsonWorkflowRepository(workflow_manager)
+    run_repo = JsonRunRepository(workflow_manager)
     executor = MockTaskExecutor()
     engine = SimpleWorkflowEngine(executor, run_repo)
     service = WorkflowService(wf_repo, run_repo, engine)
