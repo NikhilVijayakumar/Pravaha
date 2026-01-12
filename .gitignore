@@ -229,3 +229,192 @@ __marimo__/
 /.Amsha/
 /NikhilVijayakumar-akashavani-8c5029d59e90/
 /NikhilVijayakumar-sangama-ce1c8cc60171/
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/microsoft/phi-4-reasoning-plus.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_2.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_3.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_4.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_5.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_6.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/openai/gpt-oss-20b_7.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/gemini-2.5-flash.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/gemini-2.5-flash_1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/gemini-2.5-flash_2.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/gemma-3-12b-it.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/gemma-3-12b-it_1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/gemma-3-12b-it_2.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/meta-llama-3.1-8b-instruct.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/mn-12b-lyra-v1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Photosynthesis/generate_scientific_knowledge/qwen3-14b.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/Science Now/generate_scientific_knowledge/meta-llama-3.1-8b-instruct.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/The Gravity Podcast/generate_scientific_knowledge/mn-12b-lyra-v1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/The Science Minute/generate_scientific_knowledge/gemma-3-12b-it.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/final/The Science Minute/generate_scientific_knowledge/gemma-3-12b-it_1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/output/intermediate/output/test_feature/script_1.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.Amsha/output/intermediate/output/test_feature/script_2.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/config/app_config_example.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/config/llm_config_example.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Decoder/agents/auditory_transition_specialist_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Decoder/agents/conceptual_translator_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Decoder/agents/pedagogical_content_strategist_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Decoder/tasks/generate_expand_science_topics_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Decoder/tasks/generate_fantasy_science_section_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Decoder/tasks/generate_science_intro_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Derp Drive/agents/curriculum_presenter_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Derp Drive/agents/pedagogical_analogy_architect_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Derp Drive/tasks/generate_expand_science_topics_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Derp Drive/tasks/generate_science_intro_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Derp Drive/tasks/generate_science_section_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Hooks/agents/auditory_engagement_architect_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Hooks/tasks/generate_podcast_hook_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Outro/agents/podcast_scriptwriter_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Outro/tasks/generate_podcast_outro_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Story/agents/auditory_performance_director_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Story/agents/children_story_weaver_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Story/agents/story_archivist_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Story/tasks/generate_seed_plot_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Story/tasks/generate_story_chapter_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/Story/tasks/generate_story_intro_conclusion_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/The Family Mission/agents/podcast_scriptwriter_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/expansion/The Family Mission/tasks/generate_podcast_family_lab_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/Idea/agents/science_bard_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/Idea/agents/stem_curriculum_designer_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/Idea/tasks/generate_scientific_knowledge_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/Idea/tasks/science_kb_to_fantasy_concept_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/script/agents/podcast_scriptwriter_agent.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/crew/bala/katha/script/tasks/generate_podcast_script_task.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/forbidden/forbidden_topics.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/forbidden/forbidden_words.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/audience_profile.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/brand_goals.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/content_pillars.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/emotion.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/genre_alignment_guidelines.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/persona_ema_arden.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Bala Kadha/voice_ema_arden.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/forbidden/forbidden_topics.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/forbidden/forbidden_words.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/audience_profile.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/brand_goals.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/content_pillars.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/genre_alignment_guidelines.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/persona_melaina_romano.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/knowledge/Crime Thriller/voice_melaina_romano.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/runs.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/data/workflows.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/Overview.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/The Decoder.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/The Deep Dive.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/The Family Mission.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/The Foundation - Knowledge & Lore Generation.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/The Hook And The Chronicle.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/bala/katha/The Outro.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/akashavani/fastapi-setup.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/akashavani/modules.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/akashavani/overview.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/sangama/bot-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/sangama/llm-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/sangama/overview.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/sangama/storage-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/api-factory.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/bot-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/llm-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/README.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/storage-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/client/workflow-module.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/modules/api-factory.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/modules/bot.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/modules/llm.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/modules/storage.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/docs/Pravaha/modules/workflow.md
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/app/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/app/exceptions.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/app/logging_config.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/app/main.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/app/middleware.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/config/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/config/application_type.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/config/execution_target.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/config/settings.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/config/task_config.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/config/utils_type.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/common/model/input_types.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/common/llm_configuration_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/config/generate_fantasy_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/model/fantasy_blueprint.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/model/fantasy_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/model/metaphor.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/model/narrative_act.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_fantasy/generate_fantasy_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/config/scientific_kb_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/model/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/model/core_principle.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/model/key_actor.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/model/process_step.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/model/science_knowledge_base.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/model/scientific_knowledge_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/generate_kb/generate_scientific_knowledge_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/idea/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/chronicle/config/generate_chronicle_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/chronicle/model/chronicle_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/chronicle/model/chronicle_segment.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/chronicle/generate_chronicle_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/common/model/tts_line.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/decoder/config/generate_decoder_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/decoder/model/decoder_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/decoder/model/decoder_segment.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/decoder/generate_decoder_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/deep_dive/config/generate_deep_dive_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/deep_dive/model/deep_dive_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/deep_dive/model/deep_dive_segment.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/deep_dive/generate_deep_dive_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/family_mission/config/generate_family_mission_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/family_mission/model/family_mission_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/family_mission/model/family_mission_segment.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/family_mission/generate_family_mission_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/hook/config/generate_hook_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/hook/model/hook_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/hook/model/hook_segment.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/hook/generate_hook_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/outro/config/generate_outro_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/outro/model/outro_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/outro/model/outro_segment.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/script/outro/generate_outro_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/config/seed_plot_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/model/chapter.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/model/chronicle.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/model/hook.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/model/seed_plot.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/model/seed_plot_input.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/generation/generate_plot_application.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/seed_plot/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/domain/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/manager/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/manager/application_manager.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/manager/bot_manager.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/manager/utils_manager.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/config/evaluation_aggregate_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/config/evaluation_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/config/report_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/config/validation_config.yaml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/crew_validation.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/evaluation_aggregate_utils.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/evaluation_report.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/evaluation_utils.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/utils/file_utils.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/application/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/kadha/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/bala/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/akashvani/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/bavans/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/src/__init__.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/tests/verify_dynamic_config.py
+/NikhilVijayakumar-akashavani-92b7549cf0fe/.gitignore
+/NikhilVijayakumar-akashavani-92b7549cf0fe/openapi.json
+/NikhilVijayakumar-akashavani-92b7549cf0fe/pyproject.toml
+/NikhilVijayakumar-akashavani-92b7549cf0fe/Readme.md
