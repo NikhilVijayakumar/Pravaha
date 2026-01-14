@@ -6,6 +6,7 @@ from ..entity.workflow import Workflow
 from ..entity.workflow_run import WorkflowRun
 from ..model.workflow_config_request import WorkflowConfigRequest
 from ..manager.local_workflow_manager import LocalWorkflowManager
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 class WorkflowRenameRequest(BaseModel):
     id: str
@@ -22,6 +23,7 @@ class WorkflowAPIProvider:
         self.workflow_service = workflow_service
         self.workflow_manager = workflow_manager
         self.router = APIRouter()
+        self.logger = PravphaLoggingManager.get_logger()
         self._setup_routes()
 
     def _setup_routes(self):
@@ -49,12 +51,19 @@ class WorkflowAPIProvider:
         self.router.get("/workflow/runs", response_model=List[WorkflowRun])(self.list_runs)
 
     async def create_workflow(self, workflow: Workflow):
-        return self.workflow_service.create_workflow(workflow)
+        self.logger.info(f"Creating workflow: {workflow.name}")
+        result = self.workflow_service.create_workflow(workflow)
+        self.logger.info(f"Workflow created successfully: {result.id}")
+        return result
 
     async def update_workflow(self, workflow: Workflow):
+        self.logger.info(f"Updating workflow: {workflow.id}")
         try:
-            return self.workflow_service.update_workflow(workflow)
+            result = self.workflow_service.update_workflow(workflow)
+            self.logger.info(f"Workflow updated successfully: {workflow.id}")
+            return result
         except ValueError as e:
+            self.logger.error(f"Workflow update failed for {workflow.id}: {e}")
             raise HTTPException(status_code=404, detail=str(e))
 
     async def list_workflows(self):
@@ -67,7 +76,9 @@ class WorkflowAPIProvider:
         return wf
 
     async def delete_workflow(self, workflow_id: str):
+        self.logger.info(f"Deleting workflow: {workflow_id}")
         self.workflow_service.delete_workflow(workflow_id)
+        self.logger.info(f"Workflow deleted successfully: {workflow_id}")
         return {"status": "deleted"}
     
     async def rename_workflow(self, request: WorkflowRenameRequest):
@@ -86,13 +97,16 @@ class WorkflowAPIProvider:
         if not workflow_id:
             raise HTTPException(status_code=400, detail="workflow_id required")
         
+        self.logger.info(f"Starting workflow execution for workflow: {workflow_id}")
         try:
             run = self.workflow_service.trigger_run(workflow_id)
+            self.logger.info(f"Workflow run initialized: {run.id} for workflow: {workflow_id}")
             return {
                 "workflow_run_id": run.id,
                 "status": run.status.value
             }
         except ValueError as e:
+            self.logger.error(f"Workflow execution start failed for {workflow_id}: {e}")
             raise HTTPException(status_code=404, detail=str(e))
     
     async def get_execution_status(self, run_id: str):
@@ -104,8 +118,9 @@ class WorkflowAPIProvider:
     
     async def update_node_status(self, run_id: str, node_id: str, request: NodeStatusUpdateRequest):
         """Update node status based on client execution result"""
+        self.logger.info(f"Updating node status: run={run_id}, node={node_id}, status={request.status}")
         try:
-            return self.workflow_service.update_node_status(
+            result = self.workflow_service.update_node_status(
                 run_id=run_id,
                 node_id=node_id,
                 status=request.status,
@@ -113,7 +128,10 @@ class WorkflowAPIProvider:
                 error=request.error,
                 retry_attempt=request.retry_attempt
             )
+            self.logger.info(f"Node status updated successfully: run={run_id}, node={node_id}")
+            return result
         except ValueError as e:
+            self.logger.error(f"Node status update failed: run={run_id}, node={node_id}, error={e}")
             raise HTTPException(status_code=400, detail=str(e))
     
     async def get_node_output(self, run_id: str, node_id: str):
@@ -142,9 +160,11 @@ class WorkflowAPIProvider:
 
     async def set_workflow_config(self, req: WorkflowConfigRequest):
         """Update workflow configuration."""
+        self.logger.info(f"Updating workflow configuration: details={req.details_path}, run={req.run_path}")
         self.workflow_manager.update_config(
             req.details_path, req.run_path
         )
+        self.logger.info("Workflow configuration updated successfully")
         return {"status": "Configured successfully"}
 
     async def get_workflow_config(self):

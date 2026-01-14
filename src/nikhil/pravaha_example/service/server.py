@@ -6,6 +6,8 @@ from pravaha.domain.api.factory.api_factory import create_fastapi_app
 from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
 from pravaha.domain.storage.provider.storage_api_provider import StorageAPIProvider
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
+from pravaha.domain.logging.utils.rotation_utils import LogRotationUtils
 
 # Import example components
 from pravaha_example.config.settings import ApplicationType, UtilsType, ExecutionTarget
@@ -134,7 +136,8 @@ class SimpleBotManager:
         # Load and parse YAML file
         path_obj = Path(config_path)
         if not path_obj.exists():
-            print(f"Warning: Config file not found: {config_path}")
+            logger = PravphaLoggingManager.get_logger()
+            logger.warning(f"Config file not found: {config_path}")
             return None
         
         try:
@@ -142,7 +145,8 @@ class SimpleBotManager:
                 config = yaml.safe_load(f)
             return config
         except yaml.YAMLError as e:
-            print(f"Error parsing YAML config {config_path}: {e}")
+            logger = PravphaLoggingManager.get_logger()
+            logger.error(f"Error parsing YAML config {config_path}: {e}")
             return None
 
 # Create App
@@ -174,6 +178,18 @@ config_path = os.path.join(os.path.dirname(current_dir), "llm_config.yaml")
 data_dir = os.path.join(os.getcwd(), "data")
 os.makedirs(data_dir, exist_ok=True)
 
+# Setup log rotation configuration (one-time at startup)
+# This demonstrates best practice for client applications
+LogRotationUtils.setup_rotation(
+    max_size_mb=50,
+    rotation_interval_hours=24,
+    archive_retention_days=30
+)
+
+# Initialize logging
+logger = PravphaLoggingManager.get_logger()
+logger.info("Pravaha Example Server starting...")
+
 app = create_fastapi_app(
     bot_manager=bot_manager,
     task_config=task_config,
@@ -185,5 +201,5 @@ app = create_fastapi_app(
 if __name__ == "__main__":
     import uvicorn
     # Make sure to run from project root to ensure python path works or set PYTHONPATH
-    print(f"Loading config from: {config_path}")
+    logger.info(f"Loading config from: {config_path}")
     uvicorn.run(app, host="127.0.0.1", port=8000)

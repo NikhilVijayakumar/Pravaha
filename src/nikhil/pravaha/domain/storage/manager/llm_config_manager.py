@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol, LLMOutputConfig
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 class LLMConfigManager(LLMConfigManagerProtocol):
     def __init__(self, config_path: Optional[Path] = None):
@@ -26,7 +27,8 @@ class LLMConfigManager(LLMConfigManagerProtocol):
                     json.dump(yaml_content, f, indent=2)
                     
             except Exception as e:
-                print(f"Warning: Failed to cache LLM config from {config_path}: {e}")
+                logger = PravphaLoggingManager.get_logger()
+                logger.warning(f"Failed to cache LLM config from {config_path}: {e}")
         
         # If no path provided, we expect the file to already exist at self.config_file
         # or we might fail gracefully in _load_config
@@ -45,7 +47,8 @@ class LLMConfigManager(LLMConfigManagerProtocol):
             with open(self.config_file, "r") as f:
                 self._config_cache = json.load(f) or {}
         except Exception as e:
-            print(f"Error loading LLM config: {e}")
+            logger = PravphaLoggingManager.get_logger()
+            logger.error(f"Error loading LLM config: {e}")
             self._config_cache = {}
 
     def resolve_output_config(self, model_key: str) -> LLMOutputConfig:

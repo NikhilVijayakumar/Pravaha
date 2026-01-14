@@ -8,8 +8,9 @@ from ..entity.workflow import Workflow
 from ..entity.workflow_node import WorkflowNode
 from ..entity.workflow_run import WorkflowRun
 from ..entity.run_state import RunState
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
-logger = logging.getLogger(__name__)
+logger = PravphaLoggingManager.get_logger()
 
 class SimpleWorkflowEngine(WorkflowEngineProtocol):
     def __init__(self, task_executor: TaskExecutorProtocol, run_repository: RunRepositoryProtocol):

@@ -94,8 +94,41 @@ Pravaha has minimal dependencies:
 - **FastAPI** (0.121.3) - Web framework
 - **sse-starlette** (3.0.3) - Server-Sent Events support
 - **PyYAML** (6.0.2) - Configuration file parsing
+- **Nibandha** - Centralized logging and storage management
 
 See [`pyproject.toml`](file:///home/dell/PycharmProjects/Pravaha/pyproject.toml) for the complete dependency list.
+
+### Logging
+
+Pravaha uses **[Nibandha](https://github.com/NikhilVijayakumar/Nibandha)** for centralized, production-ready logging with automatic rotation and archival.
+
+**Key Features:**
+- ✅ Unified timestamped log files
+- ✅ Automatic log rotation (size & time-based)
+- ✅ Archive retention management
+- ✅ Zero configuration required
+
+**Quick Setup (For Client Applications):**
+
+```python
+from pravaha.domain.logging.utils.rotation_utils import LogRotationUtils
+from pravaha.domain.api.factory.api_factory import create_fastapi_app
+
+# Setup rotation at startup
+LogRotationUtils.setup_rotation(
+    max_size_mb=50,              # Rotate when log exceeds 50MB
+    rotation_interval_hours=24,   # Or every 24 hours
+    archive_retention_days=30     # Keep archives for 30 days
+)
+
+# Create app - logging auto-initializes
+app = create_fastapi_app(...)
+```
+
+**Log Files:** `.Nibandha/Pravaha/logs/data/YYYY-MM-DD_HH-MM-SS.log`
+
+📚 **Full Documentation:** [Nibandha Integration Guide](docs/modules/nibandha-integration.md)  
+💡 **Example Scheduler:** [example_rotation_scheduler.py](docs/examples/example_rotation_scheduler.py)
 
 ---
 

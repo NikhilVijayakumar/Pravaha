@@ -7,6 +7,7 @@ from ..protocol.orchestration_engine_protocol import OrchestrationEngineProtocol
 from ..entity.workflow import Workflow
 from ..entity.workflow_run import WorkflowRun
 from ..entity.run_state import RunState
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 class WorkflowService:
     def __init__(
@@ -18,31 +19,38 @@ class WorkflowService:
         self.workflow_repo = workflow_repo
         self.run_repo = run_repo
         self.orchestration_engine = orchestration_engine
+        self.logger = PravphaLoggingManager.get_logger()
 
     def create_workflow(self, workflow: Workflow) -> Workflow:
         # Auto-generate ID and timestamps
         if not workflow.id:
             workflow.id = str(uuid.uuid4())
+        self.logger.debug(f"Creating workflow with ID: {workflow.id}, name: {workflow.name}")
+        
         if not workflow.created_at:
             workflow.created_at = datetime.now().isoformat()
         if not workflow.updated_at:
             workflow.updated_at = workflow.created_at
         
         self.workflow_repo.save(workflow)
+        self.logger.info(f"Workflow created and saved: {workflow.id}")
         return workflow
 
     def update_workflow(self, workflow: Workflow) -> Workflow:
         if not workflow.id:
             raise ValueError("Workflow ID is required for update")
         
+        self.logger.debug(f"Updating workflow: {workflow.id}")
         existing = self.workflow_repo.get(workflow.id)
         if not existing:
+            self.logger.warning(f"Workflow not found for update: {workflow.id}")
             raise ValueError(f"Workflow {workflow.id} not found")
         
         # Update timestamp
         workflow.updated_at = datetime.now().isoformat()
         
         self.workflow_repo.save(workflow)
+        self.logger.info(f"Workflow updated successfully: {workflow.id}")
         return workflow
 
     def get_workflow(self, workflow_id: str) -> Optional[Workflow]:
@@ -52,7 +60,9 @@ class WorkflowService:
         return self.workflow_repo.list_all()
 
     def delete_workflow(self, workflow_id: str) -> None:
+        self.logger.info(f"Deleting workflow: {workflow_id}")
         self.workflow_repo.delete(workflow_id)
+        self.logger.info(f"Workflow deleted: {workflow_id}")
     
     def rename_workflow(self, workflow_id: str, new_name: str) -> Workflow:
         """Rename a workflow and return the updated workflow."""
@@ -76,8 +86,10 @@ class WorkflowService:
         Initialize a new workflow run for client-driven execution.
         Creates run and initializes orchestration state.
         """
+        self.logger.info(f"Triggering run for workflow: {workflow_id}")
         workflow = self.workflow_repo.get(workflow_id)
         if not workflow:
+            self.logger.error(f"Cannot trigger run - workflow not found: {workflow_id}")
             raise ValueError(f"Workflow {workflow_id} not found")
 
         # Create new Run
@@ -88,8 +100,10 @@ class WorkflowService:
             created_at=datetime.now()
         )
         
+        self.logger.info(f"Initializing run: {run.id} for workflow: {workflow_id}")
         # Initialize orchestration state (marks root nodes PENDING)
         run = self.orchestration_engine.initialize_run(workflow, run)
+        self.logger.info(f"Run initialized successfully: {run.id}, status: {run.status.value}")
         
         return run
     
@@ -142,8 +156,10 @@ class WorkflowService:
         """
         Update node status based on client execution result.
         """
+        self.logger.debug(f"Updating node status: run={run_id}, node={node_id}, status={status}")
         run = self.run_repo.get(run_id)
         if not run:
+            self.logger.error(f"Run not found for node status update: {run_id}")
             raise ValueError(f"Run {run_id} not found")
         
         workflow = self.workflow_repo.get(run.workflow_id)
@@ -153,16 +169,21 @@ class WorkflowService:
         status_enum = RunState(status)
         
         if status_enum == RunState.IN_PROGRESS:
+            self.logger.info(f"Marking node IN_PROGRESS: run={run_id}, node={node_id}")
             run = self.orchestration_engine.mark_node_in_progress(run, node_id)
         
         elif status_enum == RunState.COMPLETED:
+            self.logger.info(f"Completing node: run={run_id}, node={node_id}")
             run = self.orchestration_engine.complete_node(run, workflow, node_id, output_data)
+            self.logger.info(f"Node completed successfully: run={run_id}, node={node_id}")
         
         elif status_enum == RunState.FAILED:
             retry = retry_attempt is not None
+            self.logger.warning(f"Node failed: run={run_id}, node={node_id}, error={error}, retry={retry}")
             run = self.orchestration_engine.fail_node(run, node_id, error or "Unknown error", retry)
         
         else:
+            self.logger.error(f"Invalid status for update: {status}")
             raise ValueError(f"Invalid status for update: {status}")
         
         return {

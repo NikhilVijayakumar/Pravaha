@@ -6,11 +6,14 @@ from ..protocol.run_repository_protocol import RunRepositoryProtocol
 from ..entity.workflow_run import WorkflowRun
 from ..entity.run_state import RunState
 from ..manager.local_workflow_manager import LocalWorkflowManager
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 class JsonRunRepository(RunRepositoryProtocol):
     def __init__(self, workflow_manager: LocalWorkflowManager):
         self.workflow_manager = workflow_manager
+        self.logger = PravphaLoggingManager.get_logger()
         self._ensure_directory()
+        self.logger.debug("JsonRunRepository initialized")
 
     def _ensure_directory(self):
         """Ensure the workflow run directory exists."""
@@ -38,13 +41,20 @@ class JsonRunRepository(RunRepositoryProtocol):
     def _save_run(self, run: WorkflowRun):
         """Save a single run to its JSON file."""
         file_path = self._get_run_file_path(run.id)
+        self.logger.debug(f"Saving run to file: {file_path}, status: {run.status.value}")
+        
         data = run.model_dump(mode='json')
         
         # Atomic write
         temp_path = file_path.with_suffix('.tmp')
-        with open(temp_path, "w") as f:
-            json.dump(data, f, indent=2)
-        os.replace(temp_path, file_path)
+        try:
+            with open(temp_path, "w") as f:
+                json.dump(data, f, indent=2)
+            os.replace(temp_path, file_path)
+            self.logger.debug(f"Run saved successfully: {run.id}")
+        except Exception as e:
+            self.logger.error(f"Failed to save run {run.id}: {e}")
+            raise
 
     def save(self, run: WorkflowRun) -> None:
         self._save_run(run)
@@ -94,10 +104,14 @@ class JsonRunRepository(RunRepositoryProtocol):
     
     def save_node_output(self, run_id: str, node_id: str, output: Dict[str, Any]) -> None:
         """Save output data for a specific node in a run."""
+        self.logger.debug(f"Saving node output: run={run_id}, node={node_id}")
         run = self.get(run_id)
         if run:
             run.node_outputs[node_id] = output
             self.save(run)
+            self.logger.debug(f"Node output saved: run={run_id}, node={node_id}")
+        else:
+            self.logger.warning(f"Run not found for saving node output: {run_id}")
     
     def get_node_output(self, run_id: str, node_id: str) -> Optional[Dict[str, Any]]:
         """Get output data for a specific node in a run."""

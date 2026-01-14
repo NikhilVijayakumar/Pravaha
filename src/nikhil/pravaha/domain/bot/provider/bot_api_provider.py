@@ -6,6 +6,7 @@ from pravaha.domain.bot.model.application_request import ApplicationRequest
 from pravaha.domain.bot.model.utility_request import UtilityRequest
 from pravaha.domain.bot.streaming.sync_to_async import stream_from_sync_iterable
 from sse_starlette.sse import EventSourceResponse
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 
 
@@ -14,6 +15,7 @@ class BotAPIProvider:
         self.bot_manager = bot_manager
         self.task_config = task_config
         self.router = APIRouter()
+        self.logger = PravphaLoggingManager.get_logger()
         self._setup_routes()
 
     def _setup_routes(self):
@@ -36,19 +38,24 @@ class BotAPIProvider:
         self.router.get("/protocol/config/{task_name}")(self.get_config)
 
     async def run_utility(self, req: UtilityRequest):
+        self.logger.info(f"Executing utility task: {req.task_name}")
         try:
             result = self.bot_manager.run(req.task_name, inputs=req.inputs)
+            self.logger.info(f"Utility task completed successfully: {req.task_name}")
             return {"status": "success", "result": result}
         except Exception as e:
+            self.logger.error(f"Utility task failed: {req.task_name}, error: {e}")
             raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
     async def run_application_stream(self, req: ApplicationRequest):
+        self.logger.info(f"Starting application stream: {req.task_name}")
         try:
             if req.inputs:
                 stream = self.bot_manager.stream_run(req.task_name, inputs=req.inputs, llm_config=req.llm_config_override)
             else:
                 stream = self.bot_manager.stream_run(req.task_name, llm_config=req.llm_config_override)
 
+            self.logger.info(f"Application stream initialized: {req.task_name}")
             return EventSourceResponse(
                 self._event_generator(stream),
                 headers={
@@ -60,7 +67,8 @@ class BotAPIProvider:
         except Exception as e:
             import traceback
             error_details = f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}"
-            print(f"[ERROR] Stream endpoint error: {error_details}")  # Log to console for debugging
+            logger = PravphaLoggingManager.get_logger()
+            logger.error(f"Stream endpoint error: {error_details}")
             raise HTTPException(status_code=500, detail=error_details)
 
     async def _event_generator(self, stream):

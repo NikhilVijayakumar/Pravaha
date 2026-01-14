@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import HTTPException
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 
 class LocalStorageManager:
@@ -21,8 +22,9 @@ class LocalStorageManager:
             try:
                 shutil.copy2(config_path, self.config_file)
             except Exception as e:
-                # Log warning but continue, maybe defaults will work
-               print(f"Warning: Failed to cache Storage config from {config_path}: {e}")
+                # Log warning using Nibandha logger
+                logger = PravphaLoggingManager.get_logger()
+                logger.warning(f"Failed to cache Storage config from {config_path}: {e}")
 
         if defaults:
             self.defaults = defaults

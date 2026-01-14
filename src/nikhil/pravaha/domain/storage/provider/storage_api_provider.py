@@ -9,6 +9,7 @@ from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManager
 from pravaha.domain.storage.provider.intermediate_storage_provider import IntermediateStorageProvider
 from pravaha.domain.storage.provider.knowledge_storage_provider import KnowledgeStorageProvider
 from pravaha.domain.storage.provider.output_storage_provider import OutputStorageProvider
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 
 class StorageAPIProvider:
@@ -55,6 +56,7 @@ class StorageAPIProvider:
         }
 
         self.router = APIRouter(prefix="/storage")
+        self.logger = PravphaLoggingManager.get_logger()
         self._setup_routes()
 
     def _setup_routes(self):
@@ -107,9 +109,11 @@ class StorageAPIProvider:
 
     async def set_storage_config(self, req: StorageConfigRequest):
         """Update storage configuration."""
+        self.logger.info(f"Updating storage configuration: output={req.output_path}, intermediate={req.intermediate_path}, knowledge={req.knowledge_path}")
         self.storage_manager.update_config(
             req.output_path, req.intermediate_path, req.knowledge_path
         )
+        self.logger.info("Storage configuration updated successfully")
         return {"status": "Configured successfully"}
 
     async def get_storage_config(self):

@@ -12,6 +12,7 @@ from pravaha.domain.workflow.infrastructure.json_run_repository import JsonRunRe
 from pravaha.domain.workflow.service.simple_orchestration_engine import SimpleOrchestrationEngine
 from pravaha.domain.workflow.service.workflow_service import WorkflowService
 from pravaha.domain.workflow.provider.workflow_api_provider import WorkflowAPIProvider
+from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
 
 
 from typing import Optional
@@ -26,7 +27,11 @@ def create_fastapi_app(
     llm_config_path: Optional[str] = None,
     workflow_defaults: Optional[dict[str, str]] = None
 ) -> FastAPI:
+    logger = PravphaLoggingManager.get_logger()
+    logger.info(f"Creating FastAPI application: {title}")
+    
     app = FastAPI(title=title)
+    logger.debug("FastAPI instance created")
 
     app.add_middleware(
         CORSMiddleware,
@@ -34,9 +39,11 @@ def create_fastapi_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    logger.debug("CORS middleware configured")
 
     # Initialize Class-Based Providers
     bot_provider = BotAPIProvider(bot_manager, task_config)
+    logger.debug("Bot provider initialized")
     
     # Initialize Storage Components
     # We rely on defaults or can pass config path if needed
@@ -54,6 +61,7 @@ def create_fastapi_app(
         path_resolver,
         version_resolver
     )
+    logger.debug("Storage provider initialized")
 
     # Initialize Workflow Components
     workflow_manager = LocalWorkflowManager(defaults=workflow_defaults)
@@ -67,16 +75,20 @@ def create_fastapi_app(
     
     # Provider
     workflow_provider = WorkflowAPIProvider(workflow_service, workflow_manager)
+    logger.debug(f"Workflow provider initialized with defaults: {workflow_defaults}")
     
     # LLM Provider
     from pravaha.domain.llm.provider.llm_api_provider import LLMAPIProvider
     llm_api_provider = LLMAPIProvider(llm_config_manager)
+    logger.debug("LLM provider initialized")
 
     # Mount Routers
     app.include_router(bot_provider.router, prefix=f"/{prefix}")
     app.include_router(storage_provider.router, prefix=f"/{prefix}")
     app.include_router(workflow_provider.router, prefix=f"/{prefix}")
     app.include_router(llm_api_provider.router, prefix=f"/{prefix}/llm")
+    logger.info("All API routers mounted successfully")
+    logger.info(f"Application {title} ready to serve at /{prefix}")
 
     @app.get("/health")
     async def health():
