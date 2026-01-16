@@ -6,6 +6,7 @@ Provides a singleton wrapper around Nibandha for centralized logging in Pravaha.
 
 from nibandha import Nibandha, AppConfig
 from typing import Optional
+from pathlib import Path
 
 
 class PravahaLoggingManager:
@@ -16,6 +17,26 @@ class PravahaLoggingManager:
     """
     
     _instance: Optional[Nibandha] = None
+    
+    @classmethod
+    def _ensure_rotation_config(cls) -> None:
+        """
+        Ensure rotation config exists to prevent interactive prompts.
+        
+        CRITICAL: Nibandha prompts for user input during bind() if no rotation
+        config exists. This is unacceptable for backend libraries that may run
+        in non-interactive environments (APIs, containers, CI/CD, etc.).
+        
+        This method creates a default config file if it doesn't exist, preventing
+        any interactive prompts during Nibandha initialization.
+        """
+        from pravaha.domain.logging.utils.rotation_utils import LogRotationUtils
+        
+        config_path = Path(".Nibandha/config/rotation_config.yaml")
+        
+        if not config_path.exists():
+            # Create default rotation config to prevent interactive prompts
+            LogRotationUtils.setup_rotation()
     
     @classmethod
     def initialize(cls, log_level: str = "INFO") -> Nibandha:
@@ -29,6 +50,10 @@ class PravahaLoggingManager:
             Nibandha instance
         """
         if cls._instance is None:
+            # CRITICAL: Ensure rotation config exists BEFORE Nibandha initialization
+            # to prevent interactive prompts in backend environments
+            cls._ensure_rotation_config()
+            
             config = AppConfig(
                 name="Pravaha",
                 custom_folders=[
@@ -64,3 +89,7 @@ class PravahaLoggingManager:
             Nibandha instance or None if not initialized
         """
         return cls._instance
+
+
+# Backwards compatibility alias for typo used throughout codebase
+PravphaLoggingManager = PravahaLoggingManager

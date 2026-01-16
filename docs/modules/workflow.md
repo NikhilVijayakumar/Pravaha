@@ -83,9 +83,42 @@ class WorkflowRun:
     node_states: Dict[str, str]  # node_id → status
     started_at: Optional[datetime]
     completed_at: Optional[datetime]
+```\n\n#### 2. Manager Layer (`src/nikhil/pravaha/domain/workflow/manager/`)
+
+**LocalWorkflowManager**
+- Manages workflow configuration paths
+- Uses **repository pattern** for config persistence  
+- Configurable cache location via `CachePathConfig`
+- Supports custom repository backends (PostgreSQL, MongoDB, etc.)
+
+```python
+class LocalWorkflowManager:
+    def __init__(
+        self,
+        defaults: Optional[dict[str, str]] = None,
+        config_path: Optional[Path] = None,
+        cache_config: Optional[CachePathConfig] = None,  # NEW
+        config_repository: Optional[WorkflowConfigRepositoryProtocol] = None  # NEW
+    ):
+        # Use custom cache location if provided
+        if cache_config is None:
+            cache_config = CachePathConfig.default()  # .Pravaha
+        
+        # Use custom repository or default to JSON
+        if config_repository is None:
+            config_repository = JsonWorkflowConfigRepository(cache_config)
+        
+        self.config_repository = config_repository
 ```
 
-#### 2. Repositories (`src/nikhil/pravaha/domain/workflow/infrastructure/`)
+**Benefits:**
+- **Pluggable Storage**: JSON (default), PostgreSQL, MongoDB, Redis
+- **Testing**: Use mock repositories in tests
+- **Centralized Config**: Shares `CachePathConfig` with other modules
+
+**See Also:** [Repository & Configuration Module](repository-config.md)
+
+#### 3. Repositories (`src/nikhil/pravaha/domain/workflow/infrastructure/`)
 
 **JsonWorkflowRepository**
 - Persists workflows to `data/workflows.json`

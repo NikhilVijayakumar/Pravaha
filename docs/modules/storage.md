@@ -37,28 +37,45 @@ The Storage module provides **organized file system management** with hierarchic
 
 **LocalStorageManager**
 - Manages root paths for 3 categories
-- Persists config to `.Pravaha/config/storage_config.json`
-- Creates directories on demand
+- Uses **repository pattern** for config persistence
+- Configurable cache location via `CachePathConfig`
+- Supports custom repository backends (PostgreSQL, MongoDB, etc.)
 
 ```python
 class LocalStorageManager:
     def __init__(
         self,
-        output_path: str = "output",
-        intermediate_path: str = "intermediate",
-        knowledge_path: str = "knowledge"
+        defaults: Optional[dict[str, str]] = None,
+        config_path: Optional[Path] = None,
+        cache_config: Optional[CachePathConfig] = None,  # NEW
+        config_repository: Optional[StorageConfigRepositoryProtocol] = None  # NEW
     ):
-        self.output_path = output_path
-        self.intermediate_path = intermediate_path
-        self.knowledge_path = knowledge_path
+        # Use custom cache location if provided
+        if cache_config is None:
+            cache_config = CachePathConfig.default()  # .Pravaha
+        
+        # Use custom repository or default to JSON
+        if config_repository is None:
+            config_repository = JsonStorageConfigRepository(cache_config)
+        
+        self.config_repository = config_repository
         self._ensure_directories()
-        self._load_or_create_config()
 ```
 
+**Benefits of Repository Pattern:**
+- **Pluggable Storage**: JSON (default), PostgreSQL, MongoDB, Redis
+- **Testing**: Use mock repositories in tests
+- **Flexibility**: Different backends for dev vs production
+- **Centralized Config**: `CachePathConfig` controls all cache locations
+
+**See Also:** [Repository & Configuration Module](repository-config.md)
+
 **LLMConfigManager**
-- Loads YAML LLM configurations
+- Loads YAML/JSON LLM configurations  
+- Uses **repository pattern** for config persistence
 - Provides config lookup by mode (creative/evaluation)
 - Supports environment variable expansion
+- Configurable cache location
 
 #### 2. Provider Layer (`src/nikhil/pravaha/domain/storage/provider/`)
 

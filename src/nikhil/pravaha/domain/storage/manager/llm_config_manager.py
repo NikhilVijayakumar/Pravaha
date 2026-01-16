@@ -1,51 +1,42 @@
-import shutil
-import json
-import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol, LLMOutputConfig
 from pravaha.domain.logging.manager.logging_manager import PravphaLoggingManager
+from pravaha.domain.config.cache_config import CachePathConfig
+from pravaha.domain.llm.protocol.llm_config_repository_protocol import LLMConfigRepositoryProtocol
+from pravaha.domain.llm.repository.json_llm_config_repository import JsonLLMConfigRepository
 
 class LLMConfigManager(LLMConfigManagerProtocol):
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(
+        self, 
+        config_path: Optional[Path] = None,
+        cache_config: Optional[CachePathConfig] = None,
+        config_repository: Optional[LLMConfigRepositoryProtocol] = None
+    ):
         self.project_root = Path.cwd()
-        # Internal cache location
-        self.config_dir = self.project_root / ".Pravaha" / "config"
-        self.config_file = self.config_dir / "llm_config.json"
         
-        # Caching Logic
-        if config_path and config_path.exists():
-            self.config_dir.mkdir(parents=True, exist_ok=True)
-            try:
-                # Read YAML source
-                with open(config_path, "r") as f:
-                    yaml_content = yaml.safe_load(f) or {}
-                
-                # Write JSON cache
-                with open(self.config_file, "w") as f:
-                    json.dump(yaml_content, f, indent=2)
-                    
-            except Exception as e:
-                logger = PravphaLoggingManager.get_logger()
-                logger.warning(f"Failed to cache LLM config from {config_path}: {e}")
+        # Use configurable cache path (defaults to .Pravaha for backwards compatibility)
+        if cache_config is None:
+            cache_config = CachePathConfig.default()
         
-        # If no path provided, we expect the file to already exist at self.config_file
-        # or we might fail gracefully in _load_config
+        # Use provided repository or create default JSON repository
+        if config_repository is None:
+            config_repository = JsonLLMConfigRepository(
+                cache_config=cache_config,
+                source_config_path=config_path
+            )
         
+        self.config_repository = config_repository
+        
+        # Load config into cache
         self._config_cache: Dict[str, Any] = {}
         self._load_config()
 
     def _load_config(self):
-        if not self.config_file.exists():
-            # If config is missing, we might want to log a warning or use defaults.
-            # For now, we'll initialize empty and handle lookups gracefully.
-            self._config_cache = {}
-            return
-
+        """Load configuration from repository."""
         try:
-            with open(self.config_file, "r") as f:
-                self._config_cache = json.load(f) or {}
+            self._config_cache = self.config_repository.get_config() or {}
         except Exception as e:
             logger = PravphaLoggingManager.get_logger()
             logger.error(f"Error loading LLM config: {e}")
