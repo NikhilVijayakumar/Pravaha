@@ -24,22 +24,40 @@
 
 ---
 
+## 🔥 Failure Analysis
+
+### Failures by Module
+
+| Module | Total Tests | Failures | Failure Rate |
+| :--- | :---: | :---: | :---: |
+{failure_table}
+
+### Top Slowest Tests
+
+| Test | Module | Duration | Status |
+| :--- | :--- | :---: | :---: |
+{slowest_tests}
+
+---
+
 ## 📦 Module Breakdown
 
-| Module | Tests | Passing | Failing | Coverage |
-| :--- | :---: | :---: | :---: | :---: |
-{module_table}
+{module_tables}
+
+---
 
 ## 🎯 Code Coverage
-![Coverage](unit_coverage.png)
 
-## 🧪 Detailed Results by Module
+![Coverage by Module](../assets/unit_coverage.png)
 
-{detailed_sections}
-
-## 📉 Failures
-
-{failures_section}
+---
 
 ## ⏱️ Duration Distribution
-![Durations](unit_durations.png)
+
+![Test Duration Distribution](../assets/unit_durations.png)
+
+---
+
+## 🛠️ Action Items
+
+{action_items}

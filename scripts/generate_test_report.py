@@ -6,28 +6,43 @@ import datetime
 import shutil
 import pandas as pd
 import seaborn as sns
+import sys
 import matplotlib.pyplot as plt
 from pathlib import Path
 
 # Config
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
-REPORTS_DIR = PROJECT_ROOT / "reports"
+REPORTS_DIR = PROJECT_ROOT / ".Nibandha/Pravaha/Report"
 TEMPLATES_DIR = PROJECT_ROOT / "docs/test/templates"
+DOCS_TEST_DIR = PROJECT_ROOT / "docs/test"
 
 def run_tests(suite_dir: Path):
     """Run tests for a specific suite and return the path to the json report."""
     suite_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Update Environment to include source paths
+    # We need 'src/nikhil' in path so 'import pravaha' works (if using namespace style)
+    # OR 'src' if using 'import nikhil.pravaha'
+    # Based on test files: from pravaha... -> implies src/nikhil needs to be in path
+    env = os.environ.copy()
+    src_ptr = PROJECT_ROOT / "src" / "nikhil"
+    src_root = PROJECT_ROOT / "src"
+    
+    # Add both to be safe
+    current_path = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_ptr};{src_root};{current_path}"
+    
+    # We must patch sys.path for the in-process pytest run as well
+    sys.path.insert(0, str(src_root))
+    sys.path.insert(0, str(src_ptr))
     
     # 1. Unit Tests + Coverage
     print("Running Unit Tests with Coverage...")
     unit_json = suite_dir / "unit.json"
     cov_json = suite_dir / "coverage.json"
     
-    # NOTE: In a real environment, you'd run all of 'tests/unit', but for this task we limit scope 
-    # to avoid unrelated failures from older code, ensuring we verify the reporting logic itself.
-    # We will include 'tests/unit/domain/workflow' and 'tests/unit/domain/api' as samples.
-    # To run ALL, change to ["tests/unit"]
-    unit_targets = ["tests/unit/domain/workflow/entity/test_workflow_models.py", "tests/unit/domain/api/factory/test_api_factory.py"]
+    # Run ALL unit tests
+    unit_targets = ["tests/unit"]
     
     pytest.main([
         "--json-report",
@@ -42,7 +57,7 @@ def run_tests(suite_dir: Path):
     e2e_json = suite_dir / "e2e.json"
     
     # Similarly, target our stable E2E suite
-    e2e_targets = ["tests/e2e/test_example_server.py"]
+    e2e_targets = ["tests/e2e"]
     
     pytest.main([
         "--json-report",
@@ -55,7 +70,7 @@ def run_tests(suite_dir: Path):
 def _load_json(path: Path):
     if not path.exists():
         return {}
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 def _parse_outcome(data):
@@ -65,53 +80,90 @@ def _parse_outcome(data):
     total = passed + failed + summary.get("skipped", 0) + summary.get("error", 0)
     return passed, failed, total
 
-def generate_visualizations(suite_dir: Path, unit_res, e2e_res, cov_data):
+def get_module_doc(module_name: str, doc_type: str = "unit") -> str:
+    """Read specific documentation file for a module."""
+    # Map module name to directory (e.g. Auth -> auth)
+    dir_name = module_name.lower()
+    doc_path = DOCS_TEST_DIR / dir_name / f"{doc_type}_test_scenarios.md"
+    
+    if not doc_path.exists():
+        return "*No documentation found for this module.*"
+        
+    try:
+        with open(doc_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            return content
+    except Exception as e:
+        return f"*Error reading documentation: {e}*"
+
+def get_all_modules() -> list[str]:
+    """Discover all domain modules."""
+    domain_dir = PROJECT_ROOT / "src/nikhil/pravaha/domain"
+    if not domain_dir.exists():
+        return []
+    
+    modules = []
+    for d in domain_dir.iterdir():
+        if d.is_dir() and not d.name.startswith("__"):
+            modules.append(d.name.capitalize())
+    return sorted(modules)
+
+def analyze_coverage(cov_data):
+    """Analyze coverage data and return a dict of {Module: Coverage%}."""
+    files = cov_data.get("files", {})
+    module_stats = {}
+    
+    # Initialize with all known modules
+    for mod in get_all_modules():
+        module_stats[mod] = {"hits": 0, "lines": 0}
+
+    if files:
+        for fname, metrics in files.items():
+            # src/nikhil/pravaha/domain/xyz/...
+            parts = fname.replace("\\", "/").split("/")
+            if "domain" in parts:
+                idx = parts.index("domain")
+                if idx + 1 < len(parts):
+                    mod_name = parts[idx + 1].capitalize()
+                    
+                    if mod_name not in module_stats:
+                        module_stats[mod_name] = {"hits": 0, "lines": 0}
+                        
+                    module_stats[mod_name]["hits"] += metrics["summary"]["covered_lines"]
+                    module_stats[mod_name]["lines"] += metrics["summary"]["num_statements"]
+    
+    # Calculate percentages
+    results = {}
+    total_hits = 0
+    total_lines = 0
+    
+    for mod, data in module_stats.items():
+        pct = (data["hits"] / data["lines"] * 100) if data["lines"] > 0 else 0
+        results[mod] = pct
+        total_hits += data["hits"]
+        total_lines += data["lines"]
+        
+    total_cov = (total_hits / total_lines * 100) if total_lines > 0 else 0
+    return results, total_cov
+
+def generate_visualizations(suite_dir: Path, unit_res, e2e_res, cov_map):
     """Generate charts for the report."""
     sns.set_theme(style="whitegrid")
     
     # 1. Coverage Chart
-    files = cov_data.get("files", {})
-    if files:
-        # Aggregate by Module (top-level domain folder)
-        # src/nikhil/pravaha/domain/xyz/...
-        module_cov = {}
-        for fname, metrics in files.items():
-            # Basic heuristics to extract 'module' from path
-            parts = fname.split("/")
-            if "domain" in parts:
-                idx = parts.index("domain")
-                if idx + 1 < len(files):
-                    mod_name = parts[idx + 1].capitalize()
-                    current = module_cov.get(mod_name, {"hits": 0, "lines": 0})
-                    current["hits"] += metrics["summary"]["covered_lines"]
-                    current["lines"] += metrics["summary"]["num_statements"]
-                    module_cov[mod_name] = current
-        
-        # Calculate percentages
-        plot_data = []
-        coverage_total = 0
-        total_lines = 0
-        total_hits = 0
-
-        for mod, data in module_cov.items():
-            pct = (data["hits"] / data["lines"] * 100) if data["lines"] > 0 else 0
-            plot_data.append({"Module": mod, "Coverage": pct})
-            total_hits += data["hits"]
-            total_lines += data["lines"]
-        
-        coverage_total = (total_hits / total_lines * 100) if total_lines > 0 else 0
+    if cov_map:
+        plot_data = [{"Module": mod, "Coverage": pct} for mod, pct in cov_map.items()]
         
         if plot_data:
             df = pd.DataFrame(plot_data)
-            plt.figure(figsize=(8, 4))
+            plt.figure(figsize=(10, 5))
             sns.barplot(data=df, x="Module", y="Coverage", palette="viridis")
             plt.title("Code Coverage by Module")
             plt.ylim(0, 100)
+            plt.xticks(rotation=45)
             plt.tight_layout()
             plt.savefig(suite_dir / "coverage_chart.png")
             plt.close()
-    else:
-        coverage_total = 0
 
     # 2. Test Distribution (Combined)
     u_pass, u_fail, u_tot = _parse_outcome(unit_res)
@@ -146,39 +198,46 @@ def generate_visualizations(suite_dir: Path, unit_res, e2e_res, cov_data):
     plt.savefig(suite_dir / "e2e_status.png")
     plt.close()
 
-    return coverage_total
-
-def render_reports(suite_dir: Path, unit_res, e2e_res, coverage_total, timestamp):
+def render_reports(suite_dir: Path, unit_res, e2e_res, cov_map, total_cov, timestamp):
     """Render the Markdown files."""
     
     # --- PROCESS DATA ---
+    all_modules = get_all_modules()
     
-    # Unit Data
+    # Unit Data Processing
     u_tests = unit_res.get("tests", [])
     u_passed, u_failed, u_total = _parse_outcome(unit_res)
     u_rate = (u_passed / u_total * 100) if u_total > 0 else 0
     
-    # Group Unit by Module
-    modules = {}
+    # Group results by module
+    module_results = {mod: {"total": 0, "pass": 0, "fail": 0, "tests": []} for mod in all_modules}
+    # Also catch unknown modules
+    module_results["Unknown"] = {"total": 0, "pass": 0, "fail": 0, "tests": []}
+    
     for t in u_tests:
-        # path is tests/unit/domain/<module>/...
-        # We can extract module name
-        parts = t["nodeid"].split("/")
+        # path extraction: tests/unit/domain/<module>/...
+        # OR src/nikhil/pravaha/domain/<module>/... if nodeid is source-based (rare in pytest json)
+        # usually: tests/unit/domain/auth/test_auth.py::TestClass::test_method
+        parts = t["nodeid"].replace("\\", "/").split("/")
         mod = "Unknown"
         if "domain" in parts:
             idx = parts.index("domain")
             if idx + 1 < len(parts):
                 mod = parts[idx + 1].capitalize()
         
-        if mod not in modules:
-            modules[mod] = {"total": 0, "pass": 0, "fail": 0, "tests": []}
+        if mod not in module_results:
+            module_results[mod] = {"total": 0, "pass": 0, "fail": 0, "tests": []}
         
-        modules[mod]["total"] += 1
+        module_results[mod]["total"] += 1
         if t["outcome"] == "passed":
-            modules[mod]["pass"] += 1
+            module_results[mod]["pass"] += 1
         else:
-            modules[mod]["fail"] += 1
-        modules[mod]["tests"].append(t)
+            module_results[mod]["fail"] += 1
+        module_results[mod]["tests"].append(t)
+
+    # Clean up "Unknown" if empty
+    if module_results["Unknown"]["total"] == 0:
+        del module_results["Unknown"]
 
     # E2E Data
     e_tests = e2e_res.get("tests", [])
@@ -188,9 +247,12 @@ def render_reports(suite_dir: Path, unit_res, e2e_res, coverage_total, timestamp
     total_duration = unit_res.get("duration", 0) + e2e_res.get("duration", 0)
     
     # --- RENDER OVERVIEW ---
-    with open(TEMPLATES_DIR / "overview_report_template.md") as f:
-        ov_tmpl = f.read()
-    
+    try:
+        with open(TEMPLATES_DIR / "overview_report_template.md", encoding="utf-8") as f:
+            ov_tmpl = f.read()
+    except FileNotFoundError:
+        ov_tmpl = "# Overview\nFile not found."
+
     crit_issues = ""
     if u_failed > 0:
         crit_issues += f"- ❌ **{u_failed} Unit Test Failures** detected.\n"
@@ -205,39 +267,74 @@ def render_reports(suite_dir: Path, unit_res, e2e_res, coverage_total, timestamp
         suite_status="✅ Passing" if (u_failed + e_failed) == 0 else "❌ Failing",
         unit_pass_rate=u_rate,
         e2e_pass_rate=e_rate,
-        coverage_total=coverage_total,
+        coverage_total=total_cov,
         critical_issues=crit_issues
     )
     
-    with open(suite_dir / "README.md", "w") as f:
+    with open(suite_dir / "README.md", "w", encoding="utf-8") as f:
         f.write(ov_content)
 
     # --- RENDER UNIT REPORT ---
-    with open(TEMPLATES_DIR / "unit_report_template.md") as f:
-        u_tmpl = f.read()
+    try:
+        with open(TEMPLATES_DIR / "unit_report_template.md", encoding="utf-8") as f:
+            u_tmpl = f.read()
+    except FileNotFoundError:
+        u_tmpl = "# Unit Report\nTemplate not found."
 
-    # Module Table
+    # Module Table construction
     mod_table = ""
     det_sections = ""
     
-    for mod, data in modules.items():
-        cov_pct = "N/A" # Ideally link to specific coverage data if complex
-        mod_table += f"| {mod} | {data['total']} | {data['pass']} | {data['fail']} | {cov_pct} |\n"
+    for mod in sorted(module_results.keys()):
+        data = module_results[mod]
+        cov_val = cov_map.get(mod, 0)
+        
+        # Color code coverage
+        cov_str = f"{cov_val:.1f}%"
+        if cov_val < 50 and data['total'] > 0:
+            cov_str = f"🔴 {cov_str}"
+        elif cov_val > 80:
+            cov_str = f"🟢 {cov_str}"
+        
+        mod_table += f"| {mod} | {data['total']} | {data['pass']} | {data['fail']} | {cov_str} |\n"
         
         # Detailed Section
         det_sections += f"### Module: {mod}\n\n"
-        det_sections += "| Test Case | Status | Duration |\n| --- | :---: | :---: |\n"
-        for t in data["tests"]:
-            icon = "✅" if t["outcome"] == "passed" else "❌"
-            clean_name = t["nodeid"].split("::")[-1]
-            det_sections += f"| {clean_name} | {icon} | {t['call']['duration']:.3f}s |\n"
-        det_sections += "\n"
+        
+        # 1. Documentation
+        det_sections += "#### Documentation Scenarios\n\n"
+        det_sections += get_module_doc(mod, "unit")
+        det_sections += "\n\n"
+
+        # 2. Test Execution
+        if data['tests']:
+            det_sections += "#### Execution Results\n\n"
+            det_sections += "| Test Case | Status | Duration |\n| --- | :---: | :---: |\n"
+            for t in data["tests"]:
+                icon = "✅" if t["outcome"] == "passed" else "❌"
+                clean_name = t["nodeid"].split("::")[-1]
+                
+                # Safe duration access
+                duration = 0.0
+                if "call" in t:
+                    duration = t["call"].get("duration", 0)
+                elif "setup" in t:
+                    duration = t["setup"].get("duration", 0)
+                    
+                det_sections += f"| {clean_name} | {icon} | {duration:.3f}s |\n"
+            det_sections += "\n"
+        else:
+            det_sections += "*No tests executed for this module.*\n\n"
 
     # Failures
     failures = ""
     for t in u_tests:
         if t["outcome"] != "passed":
-            failures += f"### {t['nodeid']}\n```\n{t.get('longrepr', 'No Traceback')}\n```\n"
+            clean_name = t["nodeid"]
+            longrepr = t.get("longrepr", "No Traceback")
+            if isinstance(longrepr, dict):
+                longrepr = json.dumps(longrepr, indent=2)
+            failures += f"### {clean_name}\n```\n{longrepr}\n```\n"
 
     u_content = u_tmpl.format(
         date=timestamp,
@@ -248,24 +345,37 @@ def render_reports(suite_dir: Path, unit_res, e2e_res, coverage_total, timestamp
         failures_section=failures if failures else "*No Failures*"
     )
     
-    with open(suite_dir / "unit_report.md", "w") as f:
+    with open(suite_dir / "unit_report.md", "w", encoding="utf-8") as f:
         f.write(u_content)
 
     # --- RENDER E2E REPORT ---
-    with open(TEMPLATES_DIR / "e2e_report_template.md") as f:
-        e_tmpl = f.read()
+    try:
+        with open(TEMPLATES_DIR / "e2e_report_template.md", encoding="utf-8") as f:
+            e_tmpl = f.read()
+    except FileNotFoundError:
+         e_tmpl = "# E2E Report\nTemplate not found."
     
     scen_table = ""
     for t in e_tests:
         icon = "✅" if t["outcome"] == "passed" else "❌"
-        # E2E nodeids are usually long, shorten for table
         name = t["nodeid"].split("::")[-1]
-        scen_table += f"| {name} | {icon} {t['outcome']} | {t['call']['duration']:.3f}s |\n"
+        
+        # Safe duration access
+        duration = 0.0
+        if "call" in t:
+            duration = t["call"].get("duration", 0)
+        elif "setup" in t:
+            duration = t["setup"].get("duration", 0)
+            
+        scen_table += f"| {name} | {icon} {t['outcome']} | {duration:.3f}s |\n"
 
     e_failures = ""
     for t in e_tests:
         if t["outcome"] != "passed":
-            e_failures += f"### {t['nodeid']}\n```\n{t.get('longrepr', 'No Traceback')}\n```\n"
+            longrepr = t.get("longrepr", "No Traceback")
+            if isinstance(longrepr, dict):
+                longrepr = json.dumps(longrepr, indent=2)
+            e_failures += f"### {t['nodeid']}\n```\n{longrepr}\n```\n"
 
     e_content = e_tmpl.format(
         date=timestamp,
@@ -275,14 +385,19 @@ def render_reports(suite_dir: Path, unit_res, e2e_res, coverage_total, timestamp
         failures_section=e_failures if e_failures else "*No Failures*"
     )
     
-    with open(suite_dir / "e2e_report.md", "w") as f:
+    with open(suite_dir / "e2e_report.md", "w", encoding="utf-8") as f:
         f.write(e_content)
 
     return suite_dir / "README.md"
 
 def main():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    suite_dir = REPORTS_DIR / f"suite_{timestamp}"
+    suite_dir = REPORTS_DIR
+    
+    # Clean up existing
+    if suite_dir.exists():
+        shutil.rmtree(suite_dir)
+    suite_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"Starting Test Suite Run: {timestamp}")
     print(f"Artifacts will be saved to: {suite_dir}")
@@ -295,13 +410,16 @@ def main():
     e_data = _load_json(e_path)
     c_data = _load_json(c_path)
     
-    # 3. Visualize
-    cov_total = generate_visualizations(suite_dir, u_data, e_data, c_data)
+    # 3. Analyze Coverage
+    cov_map, total_cov = analyze_coverage(c_data)
     
-    # 4. Render
-    final_report = render_reports(suite_dir, u_data, e_data, cov_total, timestamp)
+    # 4. Visualize
+    generate_visualizations(suite_dir, u_data, e_data, cov_map)
     
-    print(f"\n✅ Report Generation Complete!")
+    # 5. Render
+    final_report = render_reports(suite_dir, u_data, e_data, cov_map, total_cov, timestamp)
+    
+    print(f"\n[DONE] Report Generation Complete!")
     print(f"Open the overview: {final_report}")
 
 if __name__ == "__main__":
