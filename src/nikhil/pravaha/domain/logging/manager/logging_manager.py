@@ -8,7 +8,7 @@ from nibandha import Nibandha, AppConfig
 from typing import Optional
 
 
-class PravphaLoggingManager:
+class PravahaLoggingManager:
     """
     Manages Nibandha integration for Pravaha library.
     

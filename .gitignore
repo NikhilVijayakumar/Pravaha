@@ -421,3 +421,7 @@ __marimo__/
 /Nibandha-main/
 /.Pravaha/config/workflow.json
 /.Nibandha/config/rotation_config.yaml
+/.Nibandha/Pravaha/config/storage.json
+/.Nibandha/Pravaha/config/workflow.json
+/logs/reproduce_result.txt
+/logs/verify_result.txt
