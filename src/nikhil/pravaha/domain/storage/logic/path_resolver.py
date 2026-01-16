@@ -6,7 +6,7 @@ from pravaha.domain.storage.protocol.artifact_resolver_protocol import (
     ArtifactVersionResolverProtocol, 
     StorageStage
 )
-from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
+from pravaha.domain.llm.protocol.llm_config_protocol import LLMConfigManagerProtocol
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
 
 class StoragePathResolver(StoragePathResolverProtocol):

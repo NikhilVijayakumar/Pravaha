@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from pravaha.domain.storage.logic.path_resolver import StoragePathResolver
 from pravaha.domain.storage.protocol.artifact_resolver_protocol import StorageStage, ArtifactVersionResolverProtocol
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
-from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
+from pravaha.domain.llm.protocol.llm_config_protocol import LLMConfigManagerProtocol
 
 @pytest.fixture
 def mock_storage_manager():

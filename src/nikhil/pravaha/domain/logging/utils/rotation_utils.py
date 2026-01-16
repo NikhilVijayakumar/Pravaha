@@ -54,7 +54,7 @@ class LogRotationUtils:
         )
         
         with open(config_path, 'w') as f:
-            yaml.dump(config.dict(), f, default_flow_style=False)
+            yaml.dump(config.model_dump(), f, default_flow_style=False)
     
     @staticmethod
     def check_and_rotate(nb: Nibandha) -> bool:

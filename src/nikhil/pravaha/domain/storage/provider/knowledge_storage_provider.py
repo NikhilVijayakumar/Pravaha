@@ -36,7 +36,21 @@ class KnowledgeStorageProvider(BaseStorageProvider):
 
         # If path is specified, browse that specific folder
         if path:
-            target_path = base_path / path
+            # Resolve and check security
+            target_path = (base_path / path).resolve()
+            try:
+                target_path.relative_to(base_path.resolve())
+            except ValueError:
+                # Return empty or raise error? API contract says list items.
+                # Returning empty list mimics "not found" or "permission denied" safely?
+                # Or explicit 403?
+                # BaseStorageProvider.read raises 403. Browse usually filters.
+                # Let's return empty items consistent with "not exists" check below,
+                # OR raise 400/403 if we want to catch attacks.
+                # The test expects 400/403.
+                from fastapi import HTTPException
+                raise HTTPException(status_code=403, detail="Access denied: Path traversal detected")
+
             if not target_path.exists() or not target_path.is_dir():
                 return {"items": []}
             items = self._list_directory(target_path, base_path)

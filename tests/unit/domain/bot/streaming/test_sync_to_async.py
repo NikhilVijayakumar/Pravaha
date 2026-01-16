@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from pravaha.domain.api.streaming.sync_to_async import stream_from_sync_iterable
+from pravaha.domain.bot.streaming.sync_to_async import stream_from_sync_iterable
 
 @pytest.mark.asyncio
 async def test_sync_to_async_iterator_success():

@@ -11,7 +11,7 @@ from pathlib import Path
 
 from pravaha.domain.config.cache_config import CachePathConfig
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
-from pravaha.domain.storage.manager.llm_config_manager import LLMConfigManager
+from pravaha.domain.llm.manager.llm_config_manager import LLMConfigManager
 from pravaha.domain.workflow.manager.local_workflow_manager import LocalWorkflowManager
 
 

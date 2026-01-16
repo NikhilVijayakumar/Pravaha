@@ -1,11 +1,15 @@
 import pytest
 from enum import Enum
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import Mock, patch, MagicMock
 from fastapi.testclient import TestClient
-from pravaha.domain.api.factory.api_factory import create_bot_api, create_fastapi_app
-from pravaha.domain.api.protocol.bot_manager_protocol import BotManagerProtocol
-from pravaha.domain.api.protocol.task_config_protocol import TaskConfigProtocol
+from pathlib import Path
 
+# Import ONLY the available factory function
+from pravaha.domain.api.factory.api_factory import create_fastapi_app
+from pravaha.domain.bot.protocol.bot_manager_protocol import BotManagerProtocol
+from pravaha.domain.bot.protocol.task_config_protocol import TaskConfigProtocol
+
+# --- Mocks ---
 class MockUtils(Enum):
     UTIL_1 = "util_1"
 
@@ -25,147 +29,161 @@ def mock_task_config():
 
 @pytest.fixture
 def mock_bot_manager():
-    manager = Mock(spec=BotManagerProtocol)
-    return manager
+    return Mock(spec=BotManagerProtocol)
 
-def test_create_bot_api_utility(mock_bot_manager, mock_task_config):
-    mock_bot_manager.run.return_value = "success_result"
-    
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    # We need a FastAPI app to test the router
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
-    
-    response = client.post("/run/utility", json={"task_name": "util_1"})
-    assert response.status_code == 200
-    assert response.json() == {"status": "success", "result": "success_result"}
-    mock_bot_manager.run.assert_called_with(MockUtils.UTIL_1)
+# --- Tests ---
 
-def test_create_bot_api_utility_error(mock_bot_manager, mock_task_config):
-    mock_bot_manager.run.side_effect = ValueError("Test Error")
+def test_factory_app_structure(mock_bot_manager, mock_task_config):
+    """[UT-FAC-001/002/003/004] Verify app structure, middleware, and prefix."""
+    # We mock storage_manager as it's required
+    mock_storage = Mock()
     
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
+    # We rely on defaults for most things, but need to ensure it doesn't fail on internal inits.
+    # The factory initializes providers. To avoid complex mocking of specific providers,
+    # we can just run it and see if it explodes, or mock the providers if they have complex inits.
+    # Given the factory imports providers inside the function (some of them), let's see.
+    # Actually, many imports are at top level now. Only LLM/Storage internals are inside.
     
-    response = client.post("/run/utility", json={"task_name": "util_1"})
-    assert response.status_code == 500
-    assert "ValueError: Test Error" in response.json()["detail"]
+    # Let's mock the internal "heavy" classes to keep this a unit test of the factory logic
+    with patch("pravaha.domain.api.factory.api_factory.BotAPIProvider") as mock_bot_cls:
+        with patch("pravaha.domain.api.factory.api_factory.StorageAPIProvider") as mock_storage_cls:
+            with patch("pravaha.domain.api.factory.api_factory.WorkflowAPIProvider") as mock_workflow_cls:
+                # Patch source for local imports
+                with patch("pravaha.domain.llm.provider.llm_api_provider.LLMAPIProvider") as mock_llm_cls:
+                    # Give them dummy routers
+                    mock_bot_cls.return_value.router = MagicMock()
+                    mock_storage_cls.return_value.router = MagicMock()
+                    mock_workflow_cls.return_value.router = MagicMock()
+                    mock_llm_cls.return_value.router = MagicMock()
 
-def test_create_bot_api_enums(mock_bot_manager, mock_task_config):
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
+                    # Needs to mock LLMConfigManager too since it is instantiated locally
+                    with patch("pravaha.domain.llm.manager.llm_config_manager.LLMConfigManager"):
+                        # Needs to mock Workflow internals
+                        with patch("pravaha.domain.workflow.manager.local_workflow_manager.LocalWorkflowManager"):
+                             with patch("pravaha.domain.workflow.infrastructure.json_workflow_repository.JsonWorkflowRepository"):
+                                 with patch("pravaha.domain.workflow.infrastructure.json_run_repository.JsonRunRepository"):
+                                    
+                                    app = create_fastapi_app(
+                                        bot_manager=mock_bot_manager,
+                                        task_config=mock_task_config,
+                                        storage_manager=mock_storage,
+                                        prefix="v1test",
+                                        title="Test App"
+                                    )
     
-    assert client.get("/enums/util-types").json() == ["util_1"]
-    assert client.get("/enums/application-types").json() == ["app_1"]
-    assert client.get("/enums/execution-targets").json() == ["target_1"]
+                                    assert app.title == "Test App"
+                                    
+                                    # Check Middleware
+                                    middleware_names = [m.cls.__name__ for m in app.user_middleware]
+                                    assert "CORSMiddleware" in middleware_names
+                                    
+                                    client = TestClient(app)
+                                    
+                                    # Health check
+                                    assert client.get("/health").status_code == 200
 
-def test_create_bot_api_stream(mock_bot_manager, mock_task_config):
-    # Mock stream_run to return an async iterator
-    async def async_gen():
-        yield "chunk1"
-        yield "chunk2"
+def test_factory_dependency_wiring(mock_bot_manager, mock_task_config):
+    """[UT-FAC-005/006/007/008] Verify dependencies are wired into providers."""
     
-    mock_bot_manager.stream_run.return_value = async_gen()
+    mock_storage = Mock()
+    mock_llm_path = "dummy_llm_config.yaml"
     
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
-    
-    response = client.post("/run/application/stream", json={"task_name": "app_1"})
-    assert response.status_code == 200
-    # Verify SSE format
-    assert "data: chunk1.n.n" in response.text
-    assert "data: chunk2.n.n" in response.text
-    assert "data: chunk2.n.n" in response.text
-    assert "data: chunk2.n.n" in response.text
-    assert "data: [DONE].n.n" in response.text
+    # Extensive mocking to check arguments passed to constructors
+    with patch("pravaha.domain.api.factory.api_factory.BotAPIProvider") as bot_cls, \
+         patch("pravaha.domain.api.factory.api_factory.StorageAPIProvider") as storage_cls, \
+         patch("pravaha.domain.api.factory.api_factory.WorkflowAPIProvider") as workflow_cls, \
+         patch("pravaha.domain.llm.provider.llm_api_provider.LLMAPIProvider") as llm_cls, \
+         patch("pravaha.domain.llm.manager.llm_config_manager.LLMConfigManager") as llm_config_cls, \
+         patch("pravaha.domain.workflow.manager.local_workflow_manager.LocalWorkflowManager"), \
+         patch("pravaha.domain.workflow.infrastructure.json_workflow_repository.JsonWorkflowRepository"), \
+         patch("pravaha.domain.workflow.infrastructure.json_run_repository.JsonRunRepository"), \
+         patch("pravaha.domain.workflow.service.simple_orchestration_engine.SimpleOrchestrationEngine"), \
+         patch("pravaha.domain.workflow.service.workflow_service.WorkflowService"):
 
-    # Assert correct call signature (no inputs passed)
-    mock_bot_manager.stream_run.assert_called_with(MockApp.APP_1)
+        # Setup routers
+        bot_cls.return_value.router = MagicMock()
+        storage_cls.return_value.router = MagicMock()
+        workflow_cls.return_value.router = MagicMock()
+        llm_cls.return_value.router = MagicMock()
+        
+        create_fastapi_app(
+            bot_manager=mock_bot_manager,
+            task_config=mock_task_config,
+            storage_manager=mock_storage,
+            llm_config_path=mock_llm_path
+        )
+        
+        # 1. Verify LLM Config wiring
+        args, _ = llm_config_cls.call_args
+        assert isinstance(args[0], Path)
+        assert str(args[0]) == mock_llm_path
+        
+        # 2. Verify Bot wiring
+        bot_cls.assert_called_with(mock_bot_manager, mock_task_config)
+        
+        # 3. Verify Storage wiring
+        # StorageAPIProvider(storage_manager, llm_config_manager, path_resolver, version_resolver)
+        s_args, _ = storage_cls.call_args
+        assert s_args[0] == mock_storage
+        # s_args[1] is llm_config_manager instance
+        
+        # 4. Verify Workflow defaults wiring (if any)
+        # We didn't pass defaults, so it should be None
+        # WorkflowAPIProvider(workflow_service, workflow_manager)
+        workflow_cls.assert_called()
 
-def test_create_bot_api_stream_sync(mock_bot_manager, mock_task_config):
-    # Mock stream_run to return a sync iterator
-    def sync_gen():
-        yield "sync_chunk1"
-        yield "sync_chunk2"
+def test_auth_wiring(mock_bot_manager, mock_task_config):
+    """Verify authentication config wiring."""
+    mock_auth_config = Mock()
+    mock_auth_config.enabled = True
+    mock_auth_config.exempt_paths = ["/foo"]
+    mock_repo = Mock()
     
-    mock_bot_manager.stream_run.return_value = sync_gen()
-    
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
-    
-    response = client.post("/run/application/stream", json={"task_name": "app_1"})
-    assert response.status_code == 200
-    assert "data: sync_chunk1.n.n" in response.text
-    assert "data: sync_chunk2.n.n" in response.text
-    assert "data: [DONE].n.n" in response.text
-
-def test_create_bot_api_stream_single(mock_bot_manager, mock_task_config):
-    # Mock stream_run to return a single value
-    mock_bot_manager.stream_run.return_value = "single_value"
-    
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
-    
-    response = client.post("/run/application/stream", json={"task_name": "app_1"})
-    assert response.status_code == 200
-    assert "data: single_value.n.n" in response.text
-    assert "data: [DONE].n.n" in response.text
-
-def test_create_fastapi_app(mock_bot_manager, mock_task_config):
-    app = create_fastapi_app(mock_bot_manager, mock_task_config)
-    client = TestClient(app)
-    
-    response = client.get("/health")
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
-    
-    # Check if router is included (e.g. check enums)
-    # Note: create_fastapi_app adds prefix="/api" by default
-    response = client.get("/api/enums/util-types")
-    assert response.status_code == 200
-    assert response.json() == ["util_1"]
-
-def test_create_bot_api_stream_with_inputs(mock_bot_manager, mock_task_config):
-    # Mock stream_run to return an async iterator
-    async def async_gen(task_name, inputs=None):
-        yield "chunk1"
-    
-    # We set side_effect instead of return_value to verify arguments if needed, 
-    # but return_value is enough if we just verify the call at the end.
-    mock_bot_manager.stream_run.return_value = async_gen("app_1")
-    
-    router = create_bot_api(mock_bot_manager, mock_task_config)
-    from fastapi import FastAPI
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
-    
-    inputs_data = [{"key": "value"}]
-    # We use the raw string "app_1" which the MockApp enum converts to?
-    # Actually Pydantic casts it to the Enum member. 
-    # The Mock configured in the fixture has MockApp.APP_1.value = "app_1"
-    
-    response = client.post("/run/application/stream", json={"task_name": "app_1", "inputs": inputs_data})
-    assert response.status_code == 200
-    assert "data: chunk1.n.n" in response.text
-    
-    # Assert correct call signature (WITH inputs passed)
-    mock_bot_manager.stream_run.assert_called_with(MockApp.APP_1, inputs=inputs_data)
-
+    with patch("pravaha.domain.api.factory.api_factory.BotAPIProvider") as bot_cls, \
+         patch("pravaha.domain.api.factory.api_factory.StorageAPIProvider") as storage_cls, \
+         patch("pravaha.domain.api.factory.api_factory.WorkflowAPIProvider") as workflow_cls, \
+         patch("pravaha.domain.llm.provider.llm_api_provider.LLMAPIProvider") as llm_cls, \
+         patch("pravaha.domain.llm.manager.llm_config_manager.LLMConfigManager"), \
+         patch("pravaha.domain.workflow.manager.local_workflow_manager.LocalWorkflowManager"), \
+         patch("pravaha.domain.workflow.infrastructure.json_workflow_repository.JsonWorkflowRepository"), \
+         patch("pravaha.domain.workflow.infrastructure.json_run_repository.JsonRunRepository"), \
+         patch("pravaha.domain.api.factory.api_factory.APIKeyMiddleware") as auth_middleware, \
+         patch("pravaha.domain.api.factory.api_factory.AuthAPIProvider") as auth_provider:
+         
+        # Routers
+        bot_cls.return_value.router = MagicMock()
+        storage_cls.return_value.router = MagicMock()
+        workflow_cls.return_value.router = MagicMock()
+        llm_cls.return_value.router = MagicMock()
+        auth_provider.return_value.router = MagicMock()
+        
+        app = create_fastapi_app(
+            bot_manager=mock_bot_manager,
+            task_config=mock_task_config,
+            storage_manager=Mock(),
+            auth_config=mock_auth_config,
+            access_key_repository=mock_repo
+        )
+                # Verify middleware added
+            # Middleware class is passed to add_middleware, but not necessarily instantiated immediately by FastAPI setup
+            # So we check if it is in the middleware stack
+        # Find the middleware entry
+        middleware_entry = next((m for m in app.user_middleware if m.cls == auth_middleware), None)
+        assert middleware_entry is not None
+        
+        # Verify options passed to add_middleware
+        # Middleware object in Starlette is an iterator (cls, options)
+        # We can unpack it or check attributes if available.
+        try:
+           mw_cls, mw_options = middleware_entry
+           assert mw_cls == auth_middleware
+           assert mw_options['repository'] == mock_repo
+           assert mw_options['exempt_paths'] == ["/foo"]
+        except (TypeError, ValueError):
+            # Fallback if it's not iterable (older versions? shouldn't happen)
+            options = getattr(middleware_entry, 'options', getattr(middleware_entry, 'kwargs', {}))
+            assert options['repository'] == mock_repo
+            assert options['exempt_paths'] == ["/foo"]
+        
+        # Verify Auth Provider initialized and mounted
+        auth_provider.assert_called_with(mock_repo)

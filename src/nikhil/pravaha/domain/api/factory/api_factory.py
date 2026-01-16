@@ -84,7 +84,7 @@ def create_fastapi_app(
     
     # Initialize Storage Components
     # We rely on defaults or can pass config path if needed
-    from pravaha.domain.storage.manager.llm_config_manager import LLMConfigManager
+    from pravaha.domain.llm.manager.llm_config_manager import LLMConfigManager
     from pravaha.domain.storage.logic.path_resolver import StoragePathResolver
     from pravaha.domain.storage.logic.version_resolver import ArtifactVersionResolver
     

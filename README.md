@@ -1,533 +1,581 @@
-# Pravaha - FastAPI Protocol Library for LLM/Agent Applications
+# Pravaha - Enterprise FastAPI Framework for LLM Applications
 
-**Version:** 1.0.6
+**Version:** 2.0.0  
+**Python:** 3.8+
 
-Pravaha is a lightweight FastAPI library that provides a protocol-based architecture for building APIs that handle both synchronous non-blocking tasks and asynchronous streaming operations for LLM and agent applications.
+Pravaha is a production-ready FastAPI framework providing modular architecture for building LLM and agent applications with built-in authentication, storage management, workflow orchestration, and comprehensive configuration capabilities.
 
 ---
 
-## Features
+## ✨ Key Features
 
-✅ **Protocol-Based Design** - Define contracts using Python Protocols for flexible implementations  
-✅ **Dual Execution Modes** - Support for both synchronous utilities and streaming applications  
-✅ **SSE Streaming** - Server-Sent Events (SSE) for real-time LLM response streaming  
-✅ **Type-Safe** - Leverages Pydantic and Python type hints for robust validation  
-✅ **Framework Agnostic** - Works with any bot/agent implementation that satisfies the protocols  
-✅ **Auto-Sync Conversion** - Automatically converts synchronous iterables to async for streaming
+### 🔐 **Authentication & Security**
+- API key-based authentication with SHA-256 hashing
+- Module-based permissions (Bot, LLM, Storage, Workflow)
+- Feature discovery and capability management
+- Pluggable storage backends (JSON, PostgreSQL, MongoDB)
+
+### 📦 **Storage Management**
+- Organized artifact storage (Output, Intermediate, Knowledge)
+- Version resolution and LLM-aware metadata
+- Recursive browsing and file reading APIs
+- Configurable storage backends
+
+### 🔄 **Workflow Engine**
+- Visual multi-step workflow execution
+- Topological dependency resolution
+- State persistence and restartability
+- LLM configuration injection
+
+### 🤖 **Bot Integration**
+- Protocol-based design for any bot/agent framework
+- Dual execution modes (sync utilities + async streaming)
+- Server-Sent Events (SSE) for real-time responses
+- CrewAI and custom agent support
+
+### ⚙️ **Configuration & Extensibility**
+- Protocol-based repository pattern for all config
+- Centralized cache management with `CachePathConfig`
+- Custom backend implementations supported
+- Environment-specific configuration
+
+### 📊 **Logging & Observability**
+- Production-ready logging with Nibandha integration
+- Automatic log rotation and archival
+- Centralized timestamped logs
+- Zero-configuration setup
 
 ---
 
 ## 📚 Documentation
 
-**Using Pravaha in your application?** Check out our comprehensive client documentation:
+### For Users (Implementing Pravaha)
 
-👉 **[Client Documentation Index](docs/INDEX.md)**
+**Start Here:** [Client Documentation Index](docs/client/README.md)
 
-### Quick Links
-- **[API Factory](docs/client/api-factory.md)** - **Easiest way to start!** (One-line setup)
-- **[Getting Started](docs/client/README.md)** - Installation and quick start guide
-- **[Bot Module](docs/client/bot-module.md)** - Task execution (sync & streaming)  
-- **[LLM Module](docs/client/llm-module.md)** - LLM configuration management  
-- **[Storage Module](docs/client/storage-module.md)** - File storage organization  
-- **[Workflow Module](docs/client/workflow-module.md)** - Multi-step workflow execution
+| Module | Description | Documentation |
+|--------|-------------|---------------|
+| **API Factory** | One-line FastAPI app creation | [docs/client/api-factory.md](docs/client/api-factory.md) |
+| **Authentication** | API keys & permissions | [docs/client/authentication-module.md](docs/client/authentication-module.md) |
+| **Bot Module** | Task execution & streaming | [docs/client/bot-module.md](docs/client/bot-module.md) |
+| **Storage** | File organization & retrieval | [docs/client/storage-module.md](docs/client/storage-module.md) |
+| **Workflow** | Multi-step orchestration | [docs/client/workflow-module.md](docs/client/workflow-module.md) |
+| **LLM Config** | Model configuration management | [docs/client/llm-module.md](docs/client/llm-module.md) |
 
----
+**Client SDKs:**
+- [Sangama (Electron UI)](docs/client/sangama/) - Frontend integration guide
+- [Akashavani (Python Client)](docs/client/akashavani/) - Library usage guide
 
-## Architecture Overview
+### For Contributors (Developing Pravaha)
 
-Pravaha follows Clean Architecture principles with clear separation of concerns:
+**Technical Documentation:** [Module Documentation](docs/modules/)
 
-```
-src/nikhil/pravaha/
-└── domain/
-    └── api/
-        ├── factory/              # API factory for creating FastAPI routers
-        │   └── api_factory.py    # Creates API endpoints from protocols
-        ├── protocol/             # Protocol definitions (contracts)
-        │   ├── bot_manager_protocol.py   # Bot manager interface
-        │   └── task_config_protocol.py   # Task configuration interface
-        └── streaming/            # Streaming utilities
-            └── sync_to_async.py  # Convert sync iterables to async
-```
+| Module | Purpose | Documentation |
+|--------|---------|---------------|
+| **Authentication** | Security architecture | [docs/modules/authentication.md](docs/modules/authentication.md) |
+| **Repository Pattern** | Configuration storage | [docs/modules/repository-config.md](docs/modules/repository-config.md) |
+| **Bot Module** | Execution engine | [docs/modules/bot.md](docs/modules/bot.md) |
+| **Storage** | Artifact management | [docs/modules/storage.md](docs/modules/storage.md) |
+| **Workflow** | Orchestration engine | [docs/modules/workflow.md](docs/modules/workflow.md) |
+| **LLM** | Config management | [docs/modules/llm.md](docs/modules/llm.md) |
+| **Nibandha** | Logging integration | [docs/modules/nibandha-integration.md](docs/modules/nibandha-integration.md) |
 
-### Key Components
-
-1. **Protocols** - Define the interface contracts:
-   - `BotManagerProtocol`: Interface for bot/agent execution
-   - `TaskConfigProtocol`: Interface for task configuration with Enums
-
-2. **API Factory** - Generates FastAPI routers:
-   - `create_bot_api()`: Creates API router with endpoints
-   - `create_fastapi_app()`: Creates full FastAPI application
-
-3. **Streaming** - Handles async/sync conversion:
-   - `stream_from_sync_iterable()`: Converts sync generators to async
+**Architecture:**
+- [Architecture.md](docs/Architecture.md) - Design principles & standards
+- [API Factory](docs/modules/api-factory.md) - Factory pattern details
 
 ---
 
-## Installation
+## 🚀 Quick Start
 
-### From Source
+### 1. Installation
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone <repository-url>
 cd Pravaha
 
 # Create virtual environment
-python -m venv venv
+python -m venv .venv
 
-# Activate virtual environment
-# Windows PowerShell
-.\\venv\\Scripts\\Activate.ps1
+# Activate (Linux/Mac)
+source .venv/bin/activate
 
-# Linux/Mac
-source venv/bin/activate
+# Activate (Windows)
+.\.venv\Scripts\Activate.ps1
 
 # Install in editable mode
 pip install -e .
 ```
 
-### Dependencies
+### 2. Create API Key
 
-Pravaha has minimal dependencies:
-- **FastAPI** (0.121.3) - Web framework
-- **sse-starlette** (3.0.3) - Server-Sent Events support
-- **PyYAML** (6.0.2) - Configuration file parsing
-- **Nibandha** - Centralized logging and storage management
-
-See [`pyproject.toml`](file:///home/dell/PycharmProjects/Pravaha/pyproject.toml) for the complete dependency list.
-
-### Logging
-
-Pravaha uses **[Nibandha](https://github.com/NikhilVijayakumar/Nibandha)** for centralized, production-ready logging with automatic rotation and archival.
-
-**Key Features:**
-- ✅ Unified timestamped log files
-- ✅ Automatic log rotation (size & time-based)
-- ✅ Archive retention management
-- ✅ Zero configuration required
-
-**Quick Setup (For Client Applications):**
-
-```python
-from pravaha.domain.logging.utils.rotation_utils import LogRotationUtils
-from pravaha.domain.api.factory.api_factory import create_fastapi_app
-
-# Setup rotation at startup
-LogRotationUtils.setup_rotation(
-    max_size_mb=50,              # Rotate when log exceeds 50MB
-    rotation_interval_hours=24,   # Or every 24 hours
-    archive_retention_days=30     # Keep archives for 30 days
-)
-
-# Create app - logging auto-initializes
-app = create_fastapi_app(...)
-```
-
-**Log Files:** `.Nibandha/Pravaha/logs/data/YYYY-MM-DD_HH-MM-SS.log`
-
-📚 **Full Documentation:** [Nibandha Integration Guide](docs/modules/nibandha-integration.md)  
-💡 **Example Scheduler:** [example_rotation_scheduler.py](docs/examples/example_rotation_scheduler.py)
-
----
-
-## Quick Start
-
-### 1. Explore the Example Package
-We have provided a comprehensive example in `src/nikhil/pravaha_example`.
-It includes:
-- **MathBot**: A streaming math assistant.
-- **CalculatorTool**: A simple calculator utility.
-- **Server**: A FastAPI app connecting them.
-
-Run it with:
 ```bash
-uvicorn pravaha_example.service.server:app --reload
+# Generate initial admin key
+.venv/bin/python3 scripts/create_initial_api_key.py
+
+# Save the key - it's shown only once!
+export PRAVAHA_API_KEY='your-key-here'
 ```
 
-### 2. Basic Implementation Steps
+### 3. Create Your First App
 
-**a. Define Enums**
 ```python
-from enum import Enum
-class UtilsType(str, Enum):
-    CALCULATOR = "calculator"
-class ApplicationType(str, Enum):
-    CHAT = "chat"
-class ExecutionTarget(str, Enum):
-    LOCAL = "local"
+from pravaha.domain.api.factory.api_factory import create_fastapi_app
+from pravaha.domain.bot.manager.simple_bot_manager import SimpleBotManager
+from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
+
+# Create managers
+bot_manager = SimpleBotManager()
+storage_manager = LocalStorageManager()
+
+# Create app with all features
+app = create_fastapi_app(
+    bot_manager=bot_manager,
+    task_config=your_task_config,
+    storage_manager=storage_manager
+    # Authentication enabled by default
+)
 ```
 
-**b. Implement Bot Manager**
-```python
-from pravaha.domain.bot.protocol.bot_manager_protocol import BotManagerProtocol
+### 4. Run Server
 
-class MyBotManager:
-    def run(self, utility_task, inputs=None):
-        return "Executed"
-    
-    async def stream_run(self, application_task, inputs=None):
-        yield "Hello from stream"
+```bash
+uvicorn your_module:app --reload
+# Server starts at http://localhost:8000
 ```
-
-**c. Create Server**
-```python
-from pravaha.domain.bot.provider.bot_api_provider import BotAPIProvider
-from fastapi import FastAPI
-
-# ... setup config and manager ...
-bot_provider = BotAPIProvider(bot_manager, task_config)
-app = FastAPI()
-app.include_router(bot_provider.router)
-```
-
 
 ### 5. Use the API
 
-**Health Check:**
 ```bash
-curl http://localhost:8000/health
-# Response: {"status": "ok"}
-```
+# With authentication
+curl http://localhost:8000/api/storage/browse/output \
+  -H 'X-API-Key: your-key-here'
 
-**Run Utility Task (Synchronous):**
-```bash
-curl -X POST http://localhost:8000/api/run/utility \
-  -H "Content-Type: application/json" \
-  -d '{"task_name": "validate_input"}'
+# Check capabilities
+curl http://localhost:8000/api/auth/capabilities \
+  -H 'X-API-Key: your-key-here'
 
-# Response: {"status": "success", "result": {"status": "valid", "message": "Input validated"}}
-```
-
-**Stream Application Task (SSE):**
-```bash
-curl -N http://localhost:8000/api/run/application/stream \
-  -H "Content-Type: application/json" \
-  -d '{"task_name": "chat"}'
-
-# Response (SSE stream):
-# data: Hello
-# 
-# data:  
-# 
-# data: from
-# 
-# data:  
-# 
-# data: LLM
-# 
-# data: [DONE]
-```
-
-**Get Available Enums:**
-```bash
-# Get utility types
-curl http://localhost:8000/api/enums/util-types
-
-# Get application types
-curl http://localhost:8000/api/enums/application-types
-
-# Get execution targets
-curl http://localhost:8000/api/enums/execution-targets
+# Browse documentation
+open http://localhost:8000/docs
 ```
 
 ---
 
-## API Endpoints
+## 🏗️ Architecture
 
-Pravaha automatically creates the following endpoints:
+### Clean Architecture Principles
 
-### POST `/run/utility`
-Execute synchronous utility tasks.
-
-**Request Body:**
-```json
-{
-  "task_name": "UtilsType enum value"
-}
+```
+src/nikhil/pravaha/domain/
+├── api/                    # API layer
+│   ├── factory/            # FastAPI app creation
+│   └── streaming/          # SSE streaming utilities
+├── auth/                   # Authentication system
+│   ├── model/              # AccessKey, PravahaModule
+│   ├── protocol/           # Repository contracts
+│   ├── repository/         # JSON/custom implementations
+│   ├── middleware/         # API key validation
+│   └── provider/           # Auth API endpoints
+├── bot/                    # Bot execution
+│   ├── protocol/           # BotManager contracts
+│   ├── manager/            # Bot implementations
+│   └── provider/           # Bot API endpoints
+├── storage/                # Storage management
+│   ├── manager/            # Storage configuration
+│   ├── provider/           # Storage API
+│   ├── logic/              # Path & version resolution
+│   ├── protocol/           # Repository contracts
+│   └── repository/         # Storage config repositories
+├── workflow/               # Workflow orchestration
+│   ├── entity/             # Workflow, WorkflowNode
+│   ├── service/            # Orchestration engine
+│   ├── infrastructure/     # Repositories
+│   └── provider/           # Workflow API
+├── llm/                    # LLM configuration
+│   ├── protocol/           # Config repository contracts
+│   └── repository/         # LLM config repositories
+├── config/                 # Centralized configuration
+│   └── cache_config.py     # CachePathConfig
+└── logging/                # Nibandha integration
+    └── manager/            # Logging setup
 ```
 
-**Response:**
-```json
-{
-  "status": "success",
-  "result": <any>
-}
-```
+### Protocol-Based Design
 
-### POST `/run/application/stream`
-Execute streaming application tasks with SSE.
-
-**Request Body:**
-```json
-{
-  "task_name": "ApplicationType enum value"
-}
-```
-
-**Response:** Server-Sent Events (SSE) stream
-
-### GET `/enums/util-types`
-Get all available utility task types.
-
-### GET `/enums/application-types`
-Get all available application task types.
-
-### GET `/enums/execution-targets`
-Get all available execution targets.
-
-### GET `/health`
-Health check endpoint.
-
----
-
-## Protocol Definitions
-
-### BotManagerProtocol
-
-Defines the interface your bot manager must implement:
+All major components use Python Protocols for flexibility:
 
 ```python
-class BotManagerProtocol(Protocol[UT, AT]):
-    def run(self, utility_task: UT) -> Any:
-        """Synchronous execution of a utility task"""
+# Example: Custom PostgreSQL backend
+from pravaha.domain.auth.protocol import AccessKeyRepositoryProtocol
+
+class PostgreSQLAccessKeyRepository(AccessKeyRepositoryProtocol):
+    def validate_key(self, key: str) -> bool:
+        # Your PostgreSQL implementation
         ...
 
-    def stream_run(self, application_task: AT) -> Union[Iterable[str], AsyncIterable[str]]:
-        """Streamable execution of an application task"""
+# Use in app
+app = create_fastapi_app(
+    ...,
+    access_key_repository=PostgreSQLAccessKeyRepository(conn_string)
+)
+```
+
+---
+
+## 🔐 Authentication System
+
+### Module-Based Permissions
+
+Control access to specific features:
+
+```python
+from pravaha.domain.auth.repository import JsonAccessKeyRepository
+from pravaha.domain.auth.model.module import PravahaModule
+
+repo = JsonAccessKeyRepository()
+
+# Create key with specific permissions
+frontend_key = repo.create_key(
+    name="React App",
+    permissions=[PravahaModule.STORAGE, PravahaModule.WORKFLOW]
+)
+
+# Admin key with all permissions
+admin_key = repo.create_key(
+    name="Admin",
+    permissions=PravahaModule.all_modules()  # All 4 modules
+)
+```
+
+### Available Modules
+
+| Module | Description | Example Endpoints |
+|--------|-------------|-------------------|
+| `bot` | Bot execution & task management | `/api/bot/run/utility`, `/api/bot/run/crew` |
+| `llm` | LLM configuration | `/api/llm/config` |
+| `storage` | Artifact storage & retrieval | `/api/storage/browse/*`, `/api/storage/read/*` |
+| `workflow` | Workflow orchestration | `/api/workflow/list`, `/api/workflow/run` |
+
+### Feature Discovery
+
+Frontend apps can discover available features:
+
+```javascript
+// Get current key's capabilities
+const response = await fetch('/api/auth/capabilities', {
+  headers: { 'X-API-Key': apiKey }
+});
+
+const { available_modules, endpoints } = await response.json();
+
+// Show/hide UI features based on permissions
+if (available_modules.includes('storage')) {
+  showStorageFeature();
+}
+```
+
+**📖 Full Guide:** [Authentication Documentation](docs/client/authentication-module.md)
+
+---
+
+## 📦 Storage Management
+
+### Organized Categories
+
+```
+project/
+├── output/              # Production artifacts
+│   └── Model_v1/        # Versioned by model
+├── intermediate/        # Processing artifacts  
+│   └── 20260116_143022/ # Timestamped
+└── knowledge/           # Static resources
+    └── docs/            # Nested structure
+```
+
+### Storage API
+
+```bash
+# Browse files
+GET /api/storage/browse/output
+
+# Read file content
+GET /api/storage/read/knowledge?path=docs/guide.md
+
+# Update configuration
+POST /api/storage/config
+```
+
+**📖 Full Guide:** [Storage Module Documentation](docs/client/storage-module.md)
+
+---
+
+## 🔄 Workflow Engine
+
+### Visual Workflow Definition
+
+```python
+workflow = {
+    "name": "Content Pipeline",
+    "nodes": [
+        {
+            "id": "llm-1",
+            "task_type": "LLM",
+            "task_name": "gpt-4-creative"
+        },
+        {
+            "id": "app-1",
+            "task_type": "APP",
+            "task_name": "generate_content",
+            "inputs": {...}
+        }
+    ],
+    "edges": [
+        {"source": "llm-1", "target": "app-1"}  # LLM config → App
+    ]
+}
+```
+
+### Execute Workflows
+
+```bash
+# Create workflow
+POST /api/workflow/create
+
+# List all workflows
+GET /api/workflow/list
+
+# Execute workflow
+POST /api/workflow/run?workflow_id=xxx
+```
+
+**📖 Full Guide:** [Workflow Module Documentation](docs/client/workflow-module.md)
+
+---
+
+## ⚙️ Configuration & Extensibility
+
+### Centralized Cache Configuration
+
+```python
+from pravaha.domain.config.cache_config import CachePathConfig
+
+# Custom cache location
+cache_config = CachePathConfig.from_custom_root("/var/lib/pravaha")
+
+app = create_fastapi_app(
+    ...,
+    cache_config=cache_config
+)
+# All components use /var/lib/pravaha/* for storage
+```
+
+### Repository Pattern
+
+Implement custom backends for any component:
+
+```python
+# Example: MongoDB AccessKey Repository
+from pravaha.domain.auth.protocol import AccessKeyRepositoryProtocol
+
+class MongoDBAccessKeyRepository(AccessKeyRepositoryProtocol):
+    def __init__(self, mongo_uri: str):
+        self.client = MongoClient(mongo_uri)
+        self.db = self.client.pravaha
+        self.collection = self.db.access_keys
+    
+    def validate_key(self, key: str) -> bool:
+        # MongoDB implementation
         ...
 ```
 
-- **`UT`**: Utility Task Enum type
-- **`AT`**: Application Task Enum type
-- **`run()`**: For non-streaming, synchronous operations
-- **`stream_run()`**: For streaming operations (can return sync or async iterables)
-
-### TaskConfigProtocol
-
-Defines the configuration structure:
-
-```python
-class TaskConfigProtocol(Protocol):
-    UtilsType: Type[Enum]        # Enum for utility tasks
-    ApplicationType: Type[Enum]   # Enum for streaming tasks
-    ExecutionTarget: Type[Enum]   # Enum for execution targets
-```
+**📖 Full Guide:** [Repository & Configuration](docs/modules/repository-config.md)
 
 ---
 
-## Advanced Usage
+## 📊 Logging with Nibandha
 
-### Async Stream from Sync Generator
-
-Pravaha automatically handles conversion of synchronous generators to async streams using [`stream_from_sync_iterable()`](file:///home/dell/PycharmProjects/Pravaha/src/nikhil/pravaha/domain/api/streaming/sync_to_async.py):
+### Production-Ready Logging
 
 ```python
-def my_sync_generator():
-    """Your existing sync generator"""
-    for i in range(10):
-        yield f"Item {i}"
+from pravaha.domain.logging.utils.rotation_utils import LogRotationUtils
 
-# Pravaha will automatically convert this to async
-# No changes needed in your bot manager!
+# Setup log rotation
+LogRotationUtils.setup_rotation(
+    max_size_mb=50,              # Rotate at 50MB
+    rotation_interval_hours=24,   # Or daily
+    archive_retention_days=30     # Keep 30 days
+)
+
+# Logging auto-initializes
+app = create_fastapi_app(...)
 ```
 
-### Custom Route Prefix
+### Log Organization
 
-```python
-from nikhil.pravaha.domain.api.factory.api_factory import create_bot_api
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# Create router with custom prefix
-router = create_bot_api(bot_manager, task_config, route_prefix="/custom/v1")
-app.include_router(router)
+```
+.Nibandha/Pravaha/logs/
+├── data/
+│   ├── 2026-01-16_10-00-00.log  # Current log
+│   └── 2026-01-15_10-00-00.log  # Previous
+└── archives/
+    └── 2026-01-14_10-00-00.log.gz  # Compressed
 ```
 
-### Error Handling
-
-Pravaha automatically handles exceptions and returns HTTP 500 with error details:
-
-```python
-def run(self, utility_task: UtilsType):
-    if utility_task == UtilsType.INVALID:
-        raise ValueError("Invalid task type")
-    # This will be caught and returned as:
-    # {"detail": "ValueError: Invalid task type"}
-```
+**📖 Full Guide:** [Nibandha Integration](docs/modules/nibandha-integration.md)
 
 ---
 
-## Design Principles
+## 🧪 Testing
 
-Pravaha follows these architectural principles:
-
-1. **Protocol-Based** - Uses Python Protocols for structural typing
-2. **Dependency Inversion** - High-level API factory depends on abstractions (protocols)
-3. **Separation of Concerns** - Clear separation between domain logic and API layer
-4. **Framework Agnostic** - Your bot implementation doesn't depend on FastAPI
-5. **Type Safety** - Leverages Python type hints and Pydantic validation
-
----
-
-## Development
-
-### Project Structure
-
-```
-Pravaha/
-├── docs/                      # Documentation
-│   ├── Architecture.md        # Architecture and coding standards
-│   ├── DEPENDENCIES.md        # Dependency management
-│   └── VIRTUAL_ENV_USAGE.md   # Virtual environment guide
-├── src/
-│   └── nikhil/pravaha/
-│       └── domain/api/        # Core API domain
-├── pyproject.toml             # Project configuration
-└── requirements.txt           # Development dependencies
-```
-
-### Virtual Environment
-
-See [VIRTUAL_ENV_USAGE.md](file:///home/dell/PycharmProjects/Pravaha/docs/VIRTUAL_ENV_USAGE.md) for detailed virtual environment setup instructions.
-
-### Documentation
-
-- **[Architecture.md](file:///home/dell/PycharmProjects/Pravaha/docs/Architecture.md)** - Coding standards and architectural principles
-- **[DEPENDENCIES.md](file:///home/dell/PycharmProjects/Pravaha/docs/DEPENDENCIES.md)** - Dependency management and migration roadmap
-
-### Testing
-
-Run unit tests and check coverage using the configured tools:
+### Run Tests
 
 ```bash
-# Activate virtual environment first
-source venv/bin/activate  # Linux/Mac
-# or
-.\venv\Scripts\Activate.ps1  # Windows
-
-# Run tests
+# All tests
 pytest
 
-# Run tests with coverage report
-pytest --cov=src/nikhil/pravaha --cov-report=term-missing
+# With coverage
+pytest --cov=src/nikhil/pravaha --cov-report=html
+
+# Specific module
+pytest tests/unit/domain/auth/ -v
+
+# Authentication tests (26 tests)
+pytest tests/unit/domain/auth/
 ```
 
----
+### Test Coverage
 
-## Use Cases
-
-Pravaha is ideal for:
-
-- **LLM Applications** - Chat interfaces, text generation, summarization
-- **Agent Systems** - Multi-step agent workflows with streaming responses
-- **CrewAI Integration** - FastAPI wrapper for CrewAI agents
-- **Microservices** - Protocol-based microservice APIs
-- **Bot Frameworks** - Generic bot/agent API layer
+- ✅ Authentication: 26 tests (100% passing)
+- ✅ Storage: Comprehensive coverage
+- ✅ Workflow: Entity and service tests
+- ✅ Config: Cache config integration tests
 
 ---
 
-## Contributing
+## 🎯 Use Cases
 
-Contributions are welcome! Please follow these guidelines:
+### 1. **LLM Chat Applications**
+- Real-time streaming responses
+- Conversation state management
+- Multi-model support
 
-1. Follow the coding standards in [Architecture.md](file:///home/dell/PycharmProjects/Pravaha/docs/Architecture.md)
-2. Use virtual environments for development
-3. Maintain protocol-based design
-4. Add type hints to all functions
-5. Write comprehensive docstrings
+### 2. **Agent Orchestration**
+- CrewAI integration
+- Multi-step workflows
+- Tool chaining
+
+### 3. **Content Generation Pipelines**
+- Workflow-based pipelines
+- Version management
+- Artifact tracking
+
+### 4. **Enterprise Multi-Tenant SaaS**
+- Per-tenant API keys
+- Module-based feature access
+- Custom storage backends
+
+### 5. **CI/CD Integration**
+- Programmatic key creation
+- Workflow automation
+- Artifact deployment
 
 ---
 
-## License
+## 📦 Dependencies
+
+### Core Dependencies
+- **FastAPI** (0.121.3) - Web framework
+- **sse-starlette** (3.0.3) - Server-Sent Events
+- **PyYAML** (6.0.2) - Configuration parsing
+- **Nibandha** - Logging & storage
+
+### Optional
+- **PostgreSQL/MongoDB drivers** - For custom repositories
+- **Redis** - For distributed caching
+
+See [pyproject.toml](pyproject.toml) for complete list.
+
+---
+
+## 🔄 Migration from 1.x to 2.0
+
+### Breaking Changes
+
+**Authentication (New):**
+- API keys now required by default
+- Call `/api/auth/features` to discover capabilities
+- Include `X-API-Key` header in all requests
+
+**Disable for backward compatibility:**
+```python
+from pravaha.domain.auth.config import AuthConfig
+
+app = create_fastapi_app(
+    ...,
+    auth_config=AuthConfig.disabled()  # Disable auth
+)
+```
+
+**Repository Pattern:**
+- Managers now accept `config_repository` parameter
+- Defaults to JSON, fully backward compatible
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please:
+
+1. Follow [Architecture.md](docs/Architecture.md) coding standards
+2. Use protocol-based design for new features
+3. Add comprehensive tests (aim for >80% coverage)
+4. Update documentation in `docs/modules/` and `docs/client/`
+5. Submit PRs with clear descriptions
+
+---
+
+## 📝 License
 
 [Specify your license here]
 
 ---
 
-## Contact
+## 📞 Support
 
-[Add contact information or links]
-
----
-
-### Version 1.0.6
-- Storage paths moved to project root (output, intermediate, knowledge)
-- Added new Storage API endpoints for recursive browsing (/browse) and reading (/read)
-- Made 'inputs' optional in BotManager stream_run protocol
-- Added local storage config support in .Pravaha/storage_config.json
-
-### Version 1.0.0
-- Initial release
-- Protocol-based API factory
-- SSE streaming support
-- Sync to async conversion for streaming
-- Full type safety with Pydantic
+- **Documentation:** [docs/client/README.md](docs/client/README.md)
+- **Technical Docs:** [docs/modules/](docs/modules/)
+- **Issues:** [GitHub Issues](your-issues-url)
 
 ---
 
-## Storage API
-Pravaha includes a built-in Storage Manager that organizes data into three standard categories: `output`, `intermediate`, and `knowledge`.
+## 🎉 What's New in 2.0
 
-### Configuration
-By default, the storage manager uses the following directories in your project root:
-- `./output`
-- `./intermediate`
-- `./knowledge`
+### Authentication System
+- ✅ API key-based authentication with module permissions
+- ✅ Feature discovery API (`/api/auth/capabilities`)
+- ✅ Pluggable storage backends (PostgreSQL/MongoDB support)
 
-You can customize these paths via `POST /storage/config` or by editing `.Pravaha/storage_config.json`.
+### Repository Pattern
+- ✅ Protocol-based configuration repositories
+- ✅ JSON default implementations
+- ✅ Unified `CachePathConfig` for all modules
 
-### New Endpoints
-We support recursive file browsing and reading:
+### Manager Refactoring
+- ✅ `LocalStorageManager` uses repository pattern
+- ✅ `LocalWorkflowManager` uses repository pattern
+- ✅ `LLMConfigManager` uses repository pattern
 
-**Browse Folder:**
-```bash
-GET /storage/{category}/browse?path=nested/folder
-# Returns list of files and folders in the specified path
-```
+### Enhanced Documentation
+- ✅ Complete module documentation (8 guides)
+- ✅ Client documentation with SDK examples
+- ✅ Sangama & Akashavani integration guides
 
-**Read File:**
-```bash
-GET /storage/{category}/read?path=nested/folder/file.json
-# Returns file content (parsed JSON if .json, else string)
-```
-
----
-
-## Updates to Bot Protocol
-The `stream_run` method now accepts optional inputs:
-```python
-def stream_run(self, application_task: AT, inputs: Optional[List[Dict[str, Any]]] = None):
-    # Handle case where inputs is None
-    pass
-```
-This allows streaming applications to be triggered by just a task name (e.g., "start_chat") without initial payloads.
+### Testing
+- ✅ 26 authentication tests (100% passing)
+- ✅ Integration test suites
+- ✅ Comprehensive coverage reports
 
 ---
 
-## Running the Example
-We have provided a full example implementation in `src/nikhil/pravaha_example`.
-
-1. **Install dependencies:**
-   ```bash
-   pip install uvicorn
-   ```
-
-2. **Generate Test Data (Optional):**
-   Run the helper script to create sample nested storage data:
-   ```bash
-   python generate_data.py
-   ```
-
-3. **Run the Server:**
-   ```bash
-   python src/nikhil/pravaha_example/service/server.py
-   ```
-   The server will start at `http://127.0.0.1:8000`.
-
-4. **Test Endpoints:**
-   - **Swagger UI:** Visit `http://127.0.0.1:8000/docs`
-   - **Stream (No Inputs):** `POST /run/application/stream` with `{"task_name": "math_assistant"}`
-   - **Browse Storage:** `GET /storage/output/browse`
+**Built with ❤️ using FastAPI and Python Protocols**

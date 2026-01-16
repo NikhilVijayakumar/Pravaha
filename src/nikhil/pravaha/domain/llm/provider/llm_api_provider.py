@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from fastapi import APIRouter
-from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
+from pravaha.domain.llm.protocol.llm_config_protocol import LLMConfigManagerProtocol
 
 class LLMAPIProvider:
     def __init__(self, llm_config_manager: LLMConfigManagerProtocol):

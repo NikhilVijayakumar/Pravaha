@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from pravaha.domain.storage.manager.local_storage_manager import LocalStorageManager
-from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
+from pravaha.domain.llm.protocol.llm_config_protocol import LLMConfigManagerProtocol
 from pravaha.domain.storage.provider.base_storage_provider import BaseStorageProvider
 
 

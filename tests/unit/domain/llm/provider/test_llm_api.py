@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from pravaha.domain.llm.provider.llm_api_provider import LLMAPIProvider
-from pravaha.domain.storage.protocol.llm_config_protocol import LLMConfigManagerProtocol
+from pravaha.domain.llm.protocol.llm_config_protocol import LLMConfigManagerProtocol
 
 @pytest.mark.asyncio
 async def test_get_config():

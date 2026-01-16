@@ -23,7 +23,8 @@ class AuthConfig:
         "/health",
         "/docs",
         "/openapi.json",
-        "/redoc"
+        "/redoc",
+        "/api/auth/features"
     ])
     """Paths that don't require authentication."""
     

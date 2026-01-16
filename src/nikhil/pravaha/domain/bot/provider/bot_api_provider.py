@@ -39,8 +39,14 @@ class BotAPIProvider:
 
     async def run_utility(self, req: UtilityRequest):
         self.logger.info(f"Executing utility task: {req.task_name}")
+        
+        task_enum = self._get_task_enum(req.task_name)
+        if not task_enum:
+             self.logger.error(f"Task {req.task_name} not found")
+             raise HTTPException(status_code=404, detail=f"Task {req.task_name} not found")
+
         try:
-            result = self.bot_manager.run(req.task_name, inputs=req.inputs)
+            result = self.bot_manager.run(task_enum, inputs=req.inputs)
             self.logger.info(f"Utility task completed successfully: {req.task_name}")
             return {"status": "success", "result": result}
         except Exception as e:
@@ -49,11 +55,17 @@ class BotAPIProvider:
 
     async def run_application_stream(self, req: ApplicationRequest):
         self.logger.info(f"Starting application stream: {req.task_name}")
+        
+        task_enum = self._get_task_enum(req.task_name)
+        if not task_enum:
+             self.logger.error(f"Task {req.task_name} not found")
+             raise HTTPException(status_code=404, detail=f"Task {req.task_name} not found")
+
         try:
             if req.inputs:
-                stream = self.bot_manager.stream_run(req.task_name, inputs=req.inputs, llm_config=req.llm_config_override)
+                stream = self.bot_manager.stream_run(task_enum, inputs=req.inputs, llm_config=req.llm_config_override)
             else:
-                stream = self.bot_manager.stream_run(req.task_name, llm_config=req.llm_config_override)
+                stream = self.bot_manager.stream_run(task_enum, llm_config=req.llm_config_override)
 
             self.logger.info(f"Application stream initialized: {req.task_name}")
             return EventSourceResponse(

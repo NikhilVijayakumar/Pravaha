@@ -2,9 +2,9 @@
 Unit tests for updated workflow entity models
 """
 import pytest
-from nikhil.pravaha.domain.workflow.entity.workflow_node import InputItem, WorkflowNode
-from nikhil.pravaha.domain.workflow.entity.workflow_edge import WorkflowEdge
-from nikhil.pravaha.domain.workflow.entity.workflow import Workflow
+from pravaha.domain.workflow.entity.workflow_node import InputItem, WorkflowNode
+from pravaha.domain.workflow.entity.workflow_edge import WorkflowEdge
+from pravaha.domain.workflow.entity.workflow import Workflow
 
 
 class TestInputItem:
@@ -56,7 +56,7 @@ class TestWorkflowNode:
         """Test WorkflowNode with dictionary inputs"""
         node = WorkflowNode(
             id="node1",
-            task_type="APP",
+            node_type="APP",
             task_name="test_application",
             inputs={
                 "param1": InputItem(key_name="param1", source="direct", value=10),
@@ -74,7 +74,7 @@ class TestWorkflowNode:
         """Test WorkflowNode with empty inputs dict"""
         node = WorkflowNode(
             id="node2",
-            task_type="UTIL",
+            node_type="UTIL",
             task_name="calculator",
             inputs={},
             position={"x": 500.0, "y": 400.0}
@@ -98,7 +98,7 @@ class TestWorkflowNode:
         }
         node = WorkflowNode(
             id="node3",
-            task_type="APP",
+            node_type="APP",
             task_name="generate_scientific_knowledge_application",
             inputs={},
             position={"x": 300.0, "y": 300.0},
@@ -118,7 +118,7 @@ class TestWorkflowNode:
         }
         node = WorkflowNode(
             id="node4",
-            task_type="ENVIRONMENT",
+            node_type="ENVIRONMENT",
             task_name="setup_env",
             inputs={},
             environment_config=env_config
@@ -130,7 +130,7 @@ class TestWorkflowNode:
         """Test WorkflowNode with minimal required fields"""
         node = WorkflowNode(
             id="minimal_node",
-            task_type="APP",
+            node_type="APP",
             task_name="test_app"
         )
         assert node.id == "minimal_node"
@@ -207,14 +207,14 @@ class TestWorkflow:
         """Test complete Workflow with nodes and edges"""
         node1 = WorkflowNode(
             id="node_1",
-            task_type="APP",
+            node_type="APP",
             task_name="generate_scientific_knowledge_application",
             inputs={},
             position={"x": 500.0, "y": 400.0}
         )
         node2 = WorkflowNode(
             id="node_2",
-            task_type="UTIL",
+            node_type="UTIL",
             task_name="calculator",
             inputs={
                 "result": InputItem(key_name="result", source="node_1", value=None)
@@ -249,7 +249,7 @@ class TestWorkflowSerialization:
             nodes=[
                 WorkflowNode(
                     id="node_1",
-                    task_type="APP",
+                    node_type="APP",
                     task_name="test_app",
                     inputs={},
                     position={"x": 500.0, "y": 400.0}
@@ -271,7 +271,7 @@ class TestWorkflowSerialization:
             "nodes": [
                 {
                     "id": "node_1",
-                    "task_type": "APP",
+                    "node_type": "APP",
                     "task_name": "generate_scientific_knowledge_application",
                     "inputs": {},
                     "position": {"x": 500, "y": 400}
