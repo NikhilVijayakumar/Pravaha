@@ -1,0 +1,31 @@
+# Pravaha Unified Application Configuration Example
+# This file demonstrates all configurable settings for Pravaha
+
+name: "MyApp"
+mode: "development"
+logging_level: "DEBUG"
+
+# Storage paths
+storage:
+  output: "output"
+  intermediate: "intermediate"
+  knowledge: "knowledge"
+
+# Workflow paths
+workflow:
+  details_path: "workflow/details"
+  run_path: "workflow/run"
+
+# Authentication
+auth:
+  enabled: true
+  exempt_paths:
+    - "/health"
+    - "/docs"
+    - "/openapi.json"
+    - "/redoc"
+    - "/api/auth/features"
+
+# Cache configuration
+cache:
+  cache_root: ".Pravaha"
